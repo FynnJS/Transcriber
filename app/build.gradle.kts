@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -8,6 +10,7 @@ plugins {
 android {
     namespace = "dev.fynnjs.transcriber"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "dev.fynnjs.transcriber"
@@ -24,6 +27,21 @@ android {
         }
     }
 
+    signingConfigs {
+        val keystorePropertiesFile = rootProject.file("keystore.properties")
+        if (keystorePropertiesFile.isFile) {
+            val keystoreProperties = Properties().apply {
+                keystorePropertiesFile.inputStream().use { load(it) }
+            }
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -34,6 +52,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Signiert nur, wenn lokale Zugangsdaten vorliegen (keystore.properties ist ignoriert).
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -64,7 +84,13 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
-    sourceSets["main"].jniLibs.srcDir("src/main/jniLibs")
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
 }
 
 ksp {

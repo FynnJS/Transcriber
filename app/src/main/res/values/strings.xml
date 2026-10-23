@@ -15,7 +15,13 @@
     <string name="action_share">Teilen</string>
     <string name="action_save">Speichern</string>
     <string name="action_back">Zurück</string>
+    <string name="action_undo">Rückgängig</string>
+    <string name="action_open_settings">Einstellungen öffnen</string>
+    <string name="action_download">Laden</string>
+    <string name="action_open">Öffnen</string>
+    <string name="action_continue">Weiter</string>
     <string name="copied">In die Zwischenablage kopiert</string>
+    <string name="error_generic">Etwas ist schiefgelaufen. Bitte versuche es erneut.</string>
 
     <!-- Status -->
     <string name="status_queued">In Warteschlange</string>
@@ -24,7 +30,178 @@
     <string name="status_failed">Fehlgeschlagen</string>
     <string name="status_no_text">Kein Text erkannt</string>
 
+    <!-- History -->
+    <string name="history_title">Verlauf</string>
+    <string name="history_search_hint">Transkript und Label durchsuchen</string>
+    <string name="history_search_clear">Suche löschen</string>
+    <string name="history_empty_title">Noch keine Nachrichten</string>
+    <string name="history_empty_text">Teile eine Sprachnachricht aus WhatsApp mit Transcriber, um sie in Text umzuwandeln.</string>
+    <string name="history_search_empty_title">Keine Treffer</string>
+    <string name="history_search_empty_text">Für „%1$s“ wurde nichts gefunden.</string>
+    <string name="history_deleted">Eintrag gelöscht</string>
+    <string name="history_audio_expired">Audio gelöscht</string>
+    <string name="history_card_description">%1$s, %2$s, %3$s</string>
+    <string name="history_today">Heute</string>
+    <string name="history_yesterday">Gestern</string>
+
+    <!-- Detail -->
+    <string name="detail_title">Nachricht</string>
+    <string name="detail_label_hint">Label</string>
+    <string name="detail_label_suggestions">Zuletzt verwendet</string>
+    <string name="detail_label_add">Label hinzufügen</string>
+    <string name="detail_label_dialog_title">Label bearbeiten</string>
+    <string name="detail_edit_label">Label bearbeiten</string>
+    <string name="detail_retry_started">Transkription neu gestartet</string>
+    <string name="detail_label_remove">Label entfernen</string>
+    <string name="detail_no_text">Kein Text erkannt</string>
+    <string name="detail_no_text_hint">Die Aufnahme ist zu leise, zu kurz oder enthält nur Geräusche.</string>
+    <string name="detail_error_title">Transkription fehlgeschlagen</string>
+    <string name="detail_audio_expired">Die Audiodatei wurde nach der Aufbewahrungsfrist gelöscht.</string>
+    <string name="detail_delete_confirm_title">Eintrag löschen?</string>
+    <string name="detail_delete_confirm_text">Transkript und Audiodatei werden endgültig gelöscht.</string>
+    <string name="detail_share_chooser">Transkript teilen</string>
+    <string name="detail_created_at">Geteilt am %1$s</string>
+    <string name="detail_model_info">%1$s · %2$s</string>
+    <string name="detail_transcript">Transkript</string>
+    <string name="detail_actions">Aktionen</string>
+
     <!-- Overlay -->
     <string name="share_title">Sprachnachricht transkribieren</string>
     <string name="share_preparing">Audio wird vorbereitet …</string>
+    <string name="share_error_title">Teilen fehlgeschlagen</string>
+    <string name="share_error_no_audio">Es wurde keine Audiodatei übergeben.</string>
+    <string name="share_error_unreadable">Die Datei konnte nicht gelesen werden. Ist sie noch vorhanden?</string>
+    <string name="share_error_no_space">Nicht genug Speicherplatz für die Audiodatei.</string>
+    <string name="share_error_too_large">Die Audiodatei ist zu groß (maximal 100 MB).</string>
+    <string name="share_error_missing">Der Eintrag wurde gelöscht.</string>
+    <string name="share_duplicate_hint">Diese Nachricht war bereits im Verlauf.</string>
+    <string name="share_open_in_app">In der App öffnen</string>
+    <string name="share_model_missing_title">Sprachmodell fehlt</string>
+    <string name="share_model_missing_text">Lade das Sprachmodell, um Sprachnachrichten zu transkribieren.</string>
+    <string name="share_model_button">Modell laden</string>
+    <string name="share_background_hint">Die Transkription läuft weiter, auch wenn du das Overlay schließt.</string>
+    <string name="share_no_text">Kein Text erkannt. Die Aufnahme ist zu leise, zu kurz oder enthält nur Geräusche.</string>
+    <string name="share_transcript_label">Transkript</string>
+    <string name="share_retry_started">Transkription neu gestartet</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_section_design">Darstellung</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_section_transcription">Transkription</string>
+    <string name="settings_model">Modell</string>
+    <string name="settings_model_small_desc">Genauer, braucht mehr Speicher und Zeit</string>
+    <string name="settings_model_base_desc">Schneller, weniger genau</string>
+    <string name="settings_model_download">Laden</string>
+    <string name="settings_model_delete">Modell löschen</string>
+    <string name="settings_model_active">Aktives Modell</string>
+    <string name="settings_model_delete_active_hint">Wähle zuerst ein anderes Modell, um dieses zu löschen.</string>
+    <string name="settings_model_downloading">Wird geladen … %1$d %%</string>
+    <string name="settings_model_ready">Bereit</string>
+    <string name="settings_model_not_downloaded">Nicht geladen</string>
+    <string name="settings_model_failed">Download fehlgeschlagen</string>
+    <string name="settings_model_checksum">Datei beschädigt – bitte erneut laden</string>
+    <string name="settings_model_no_space">Nicht genug Speicherplatz</string>
+    <string name="settings_model_size">%1$d MB</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_auto">Automatisch erkennen</string>
+    <string name="settings_language_de">Deutsch</string>
+    <string name="settings_section_retention">Aufbewahrung</string>
+    <string name="settings_audio_retention">Audio</string>
+    <string name="settings_transcript_retention">Transkript</string>
+    <string name="retention_immediately">Sofort nach Transkription</string>
+    <string name="retention_7_days">7 Tage</string>
+    <string name="retention_30_days">30 Tage</string>
+    <string name="retention_90_days">90 Tage</string>
+    <string name="retention_never">Nie</string>
+    <string name="settings_section_privacy">Datenschutz</string>
+    <string name="settings_app_lock">App-Sperre</string>
+    <string name="settings_app_lock_desc">Beim Start mit Biometrie entsperren</string>
+    <string name="settings_app_lock_unavailable">Keine Biometrie eingerichtet – Gerätesperre aktivieren, um die App-Sperre zu nutzen.</string>
+    <string name="settings_secure_screen">Bildschirmfotos verhindern</string>
+    <string name="settings_secure_screen_desc">Blockiert Screenshots und Bildschirmaufnahmen in der App</string>
+    <string name="settings_delete_all">Alles löschen</string>
+    <string name="settings_delete_all_confirm_title">Alle Daten löschen?</string>
+    <string name="settings_delete_all_confirm_text">Alle Transkripte und Audiodateien werden endgültig gelöscht. Das Modell bleibt erhalten.</string>
+    <string name="settings_privacy_note">Alles bleibt auf diesem Gerät. Netzwerk wird nur für den Modelldownload genutzt.</string>
+    <string name="settings_incognito_title">Inkognito-Wiedergabe</string>
+    <string name="settings_incognito_text">Audio läuft ausschließlich im eigenen Player. WhatsApp erfährt nichts von der Wiedergabe, Absender sehen keinen blauen Mikrofon-Haken.</string>
+    <string name="settings_notifications_hint">Benachrichtigungen sind deaktiviert. Der Fortschritt ist dann nur in der App sichtbar.</string>
+    <string name="settings_about">Über Transcriber</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_privacy_policy">Datenschutzerklärung</string>
+    <string name="settings_data_deleted">Alle Daten gelöscht</string>
+    <string name="settings_model_deleted">Modell gelöscht</string>
+    <string name="settings_audio_deleted_now">Aufbewahrungsregel angewendet</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Sprachnachrichten lesen</string>
+    <string name="onboarding_subtitle">Transcriber wandelt WhatsApp-Sprachnachrichten auf diesem Gerät in Text um – ohne Cloud.</string>
+    <string name="onboarding_feature_offline">Offline und privat</string>
+    <string name="onboarding_feature_offline_text">Weder Audio noch Transkript verlassen dein Gerät.</string>
+    <string name="onboarding_feature_share">Direkt aus WhatsApp teilen</string>
+    <string name="onboarding_feature_share_text">Nachricht teilen und das Transkript sofort im Overlay lesen.</string>
+    <string name="onboarding_download_title">Sprachmodell laden</string>
+    <string name="onboarding_download_text">Einmalig %1$s über WLAN laden. Danach funktioniert die Transkription komplett offline.</string>
+    <string name="onboarding_download_button">Modell laden (%1$s)</string>
+    <string name="onboarding_downloading">Download läuft … %1$d %%</string>
+    <string name="onboarding_error_failed">Download fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="onboarding_error_checksum">Die Datei ist beschädigt. Bitte lade sie erneut.</string>
+    <string name="onboarding_error_space">Nicht genug Speicherplatz für das Modell.</string>
+    <string name="onboarding_ready">Modell bereit</string>
+    <string name="onboarding_continue">Loslegen</string>
+    <string name="onboarding_wifi_hint">Am besten im WLAN laden.</string>
+    <string name="onboarding_skip">Später</string>
+
+    <!-- Player -->
+    <string name="player_play">Abspielen</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_position">%1$s / %2$s</string>
+    <string name="player_speed">Geschwindigkeit</string>
+    <string name="player_speed_1x">1×</string>
+    <string name="player_speed_15x">1,5×</string>
+    <string name="player_speed_2x">2×</string>
+    <string name="player_audio_missing">Audio nicht mehr verfügbar</string>
+
+    <!-- Lock -->
+    <string name="lock_title">Transcriber ist gesperrt</string>
+    <string name="lock_subtitle">Bestätige dich, um deine Transkripte zu sehen.</string>
+    <string name="lock_button">Entsperren</string>
+    <string name="lock_failed">Nicht erkannt. Bitte versuche es erneut.</string>
+    <string name="lock_unavailable">Richte eine Gerätesperre ein, um die App-Sperre zu verwenden.</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Datenschutz</string>
+    <string name="privacy_body">Transcriber verarbeitet Sprachnachrichten ausschließlich auf diesem Gerät. Audio und Transkripte liegen im app-privaten Speicher und werden weder an WhatsApp noch an andere Dienste gesendet.
+
+Die App nutzt das Netzwerk nur, um das Sprachmodell von whisper.cpp herunterzuladen. Es gibt keine Analyse-, Werbe- oder Crash-SDKs. Backups und Geräteübertragung schließen Datenbank und Audioordner aus.
+
+Der Player spielt nur die lokale Audiodatei ab. WhatsApp erhält dadurch keine Wiedergabebestätigung; Absender sehen keinen blauen Mikrofon-Haken.
+
+Du kannst Audiodateien und Transkripte jederzeit löschen oder automatische Aufbewahrungsfristen setzen.</string>
+
+    <!-- Permissions -->
+    <string name="permission_notifications_denied">Ohne Benachrichtigungen siehst du den Fortschritt nur in der App.</string>
+
+    <!-- Model download -->
+    <string name="model_download_channel">Modell-Download</string>
+    <string name="model_download_channel_description">Lädt das Sprachmodell für die Transkription</string>
+    <string name="model_download_title">Sprachmodell wird geladen</string>
+    <string name="model_download_progress">%1$d %% geladen</string>
+
+    <!-- Transcription service -->
+    <string name="transcription_channel">Transkription</string>
+    <string name="transcription_channel_description">Fortschritt laufender Transkriptionen</string>
+    <string name="transcription_notification_title">Transkription läuft</string>
+    <string name="transcription_notification_file">%1$s</string>
+    <string name="transcription_notification_preparing">Wird vorbereitet …</string>
+
+    <!-- Errors -->
+    <string name="error_model_missing">Sprachmodell fehlt. Bitte lade es in den Einstellungen.</string>
+    <string name="error_audio_missing">Die Audiodatei ist nicht mehr vorhanden.</string>
+    <string name="error_decode_failed">Die Audiodatei konnte nicht gelesen werden.</string>
+    <string name="error_transcription_failed">Die Transkription ist fehlgeschlagen. Bitte versuche es erneut.</string>
+    <string name="error_native_unsupported">Transkription wird auf diesem Gerät nicht unterstützt (arm64-v8a erforderlich).</string>
 </resources>
