@@ -286,55 +286,12 @@ fun DetailScreen(
 
             // The empty state only belongs to finished entries: while an entry is queued or
             // still transcribing, there is no result yet and a failure is explained above.
-            val section = transcriptSection(current.status, current.hasTranscript)
-
-            if (section != TranscriptSection.Hidden) {
+            if (transcriptSection(current.status, current.hasTranscript) != TranscriptSection.Hidden) {
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    text = stringResource(R.string.detail_transcript),
-                    style = MaterialTheme.typography.titleMedium,
+                TranscriptArea(
+                    status = current.status,
+                    transcript = current.transcript,
                 )
-                Spacer(Modifier.height(8.dp))
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        when (section) {
-                            TranscriptSection.Transcript ->
-                                SelectionContainer {
-                                    Text(
-                                        text = current.transcript.orEmpty(),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                }
-
-                            TranscriptSection.NoText -> {
-                                Text(
-                                    text = stringResource(R.string.detail_no_text),
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.detail_no_text_hint),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-
-                            TranscriptSection.Pending ->
-                                Text(
-                                    text = stringResource(R.string.detail_transcript_pending),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-
-                            TranscriptSection.Hidden -> Unit
-                        }
-                    }
-                }
             }
 
             if (current.hasTranscript) {
@@ -417,6 +374,69 @@ internal fun transcriptSection(
         status == TranscriptionStatus.TRANSCRIBING -> TranscriptSection.Pending
 
     else -> TranscriptSection.Hidden
+}
+
+/**
+ * Transcript area of the detail screen: heading, card and content for the entry state.
+ *
+ * Renders nothing for a failed entry without text; the error state above already explains it.
+ */
+@Composable
+internal fun TranscriptArea(
+    status: TranscriptionStatus,
+    transcript: String?,
+    modifier: Modifier = Modifier,
+) {
+    val section = transcriptSection(status, hasTranscript = !transcript.isNullOrBlank())
+    if (section == TranscriptSection.Hidden) return
+
+    Column(modifier) {
+        Text(
+            text = stringResource(R.string.detail_transcript),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(Modifier.height(8.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                when (section) {
+                    TranscriptSection.Transcript ->
+                        SelectionContainer {
+                            Text(
+                                text = transcript.orEmpty(),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+
+                    TranscriptSection.NoText -> {
+                        Text(
+                            text = stringResource(R.string.detail_no_text),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.detail_no_text_hint),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    TranscriptSection.Pending ->
+                        Text(
+                            text = stringResource(R.string.detail_transcript_pending),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                    TranscriptSection.Hidden -> Unit
+                }
+            }
+        }
+    }
 }
 
 /**
