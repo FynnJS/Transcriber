@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Transcriber</string>
+
+    <!-- Navigation -->
+    <string name="nav_history">Verlauf</string>
+    <string name="nav_settings">Einstellungen</string>
+
+    <!-- Common -->
+    <string name="action_close">Schließen</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_retry">Erneut versuchen</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_copy">Kopieren</string>
+    <string name="action_share">Teilen</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_back">Zurück</string>
+    <string name="copied">In die Zwischenablage kopiert</string>
+
+    <!-- Status -->
+    <string name="status_queued">In Warteschlange</string>
+    <string name="status_transcribing">Transkribiert …</string>
+    <string name="status_done">Fertig</string>
+    <string name="status_failed">Fehlgeschlagen</string>
+    <string name="status_no_text">Kein Text erkannt</string>
+
+    <!-- Overlay -->
+    <string name="share_title">Sprachnachricht transkribieren</string>
+    <string name="share_preparing">Audio wird vorbereitet …</string>
+</resources>

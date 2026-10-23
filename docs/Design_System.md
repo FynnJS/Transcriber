@@ -1,0 +1,140 @@
+# Transcriber – Design-System
+
+Quelle der Wahrheit für Farben, Typografie, Abstände, Formen und Komponenten.
+Umgesetzt in `ui/theme/` (Compose Material 3). Es gibt **keine Dynamic Colors**, damit das
+Branding auf jedem Gerät gleich aussieht. **Dark Mode ist der Standard**, Light Mode ist
+eine bewusste Alternative.
+
+## Marke
+
+| Rolle | Wert |
+| --- | --- |
+| Logo-Grün (Primärfarbe, Icon-Hintergrund) | `#14A74B` |
+| Logo-Grün hell (Verlauf) | `#1CB55A` |
+| Logo-Grün dunkel | `#0E7A36` |
+| Wortmarke | „Transcriber“, Satzschrift, Halbfett |
+| Icon | Mikrofon + Sprechblase, weiß freigestellt auf Grün (`docs/Logo.png`) |
+
+Der Verlauf des Logos wird nur im Icon und in der Onboarding-Illustration verwendet,
+nicht als Flächenfarbe in der App.
+
+## Farbschemata
+
+### Dunkel (Standard)
+
+| Rolle | Hex |
+| --- | --- |
+| primary / onPrimary | `#52E08D` / `#00391B` |
+| primaryContainer / onPrimaryContainer | `#00522A` / `#A6F5C4` |
+| secondary / onSecondary | `#B4CCBB` / `#1F3527` |
+| secondaryContainer / onSecondaryContainer | `#354B3B` / `#CFE9D7` |
+| tertiary / onTertiary | `#A3CDDB` / `#06323C` |
+| background / onBackground | `#0F1511` / `#DFE5DE` |
+| surface / onSurface | `#0F1511` / `#DFE5DE` |
+| surfaceVariant / onSurfaceVariant | `#414942` / `#C0C9C1` |
+| surfaceContainerLowest / Low / Base / High / Highest | `#0A100C` / `#171D19` / `#1B221D` / `#252C27` / `#303731` |
+| outline / outlineVariant | `#8A938B` / `#414942` |
+| error / errorContainer | `#FFB4AB` / `#93000A` |
+
+### Hell
+
+| Rolle | Hex |
+| --- | --- |
+| primary / onPrimary | `#0E8A3D` / `#FFFFFF` |
+| primaryContainer / onPrimaryContainer | `#C6F2D8` / `#00210F` |
+| secondary / onSecondary | `#4C6353` / `#FFFFFF` |
+| secondaryContainer / onSecondaryContainer | `#D9E8DC` / `#0A1F12` |
+| tertiary / onTertiary | `#3B6470` / `#FFFFFF` |
+| background / onBackground | `#F7FBF8` / `#171D19` |
+| surface / onSurface | `#F7FBF8` / `#171D19` |
+| surfaceVariant / onSurfaceVariant | `#DCE5DE` / `#414942` |
+| surfaceContainerLowest / Low / Base / High / Highest | `#FFFFFF` / `#F1F7F3` / `#EBF1EC` / `#E6ECE7` / `#E0E6E1` |
+| outline / outlineVariant | `#717971` / `#C0C9C1` |
+| error / errorContainer | `#BA1A1A` / `#FFDAD6` |
+
+Statusfarben (zusätzlich, kein Material-Rollenpaar):
+
+| Status | Dunkel | Hell |
+| --- | --- | --- |
+| Erfolg / Fertig | `#52E08D` | `#0E8A3D` |
+| In Arbeit | tertiary `#A3CDDB` | tertiary `#3B6470` |
+| Fehler | error | error |
+| Warteschlange | onSurfaceVariant | onSurfaceVariant |
+
+## Typografie
+
+Systemschrift (Roboto / SansSerif), keine zusätzlichen Font-Dateien.
+
+| Stil | Größe / Zeilenhöhe | Gewicht | Einsatz |
+| --- | --- | --- | --- |
+| displaySmall | 36 / 44 | SemiBold | Onboarding-Titel |
+| headlineMedium | 28 / 36 | SemiBold | Bildschirmtitel |
+| headlineSmall | 24 / 32 | SemiBold | Sheet-Titel |
+| titleLarge | 22 / 28 | SemiBold | TopBar, Detailtitel |
+| titleMedium | 16 / 24 | Medium | Karten-Label, Listentitel |
+| bodyLarge | 16 / 24 | Regular | Transkript, Fließtext |
+| bodyMedium | 14 / 20 | Regular | Beschreibungen |
+| bodySmall | 12 / 16 | Regular | Metazeile (Datum, Dauer) |
+| labelLarge | 14 / 20 | Medium | Buttons |
+| labelMedium | 12 / 16 | Medium | Chips |
+| labelSmall | 11 / 16 | Medium | Status-Chips |
+
+Transkripte nutzen `bodyLarge` mit `lineHeight 24sp`; Vorschauen werden auf zwei bis drei
+Zeilen gekürzt. Zahlen in Dauerangaben stehen in `labelMedium` mit tabellarischen Ziffern.
+
+## Abstände
+
+4-dp-Raster:
+
+| Token | Wert | Einsatz |
+| --- | --- | --- |
+| xs | 4 dp | Icon zu Text in Chips |
+| s | 8 dp | Chip-Innenabstand, enge Gruppen |
+| m | 12 dp | Karten-Innenabstand vertikal |
+| base | 16 dp | Standardabstand, Bildschirmrand |
+| l | 24 dp | Abschnittsabstand |
+| xl | 32 dp | Hero-/Leerzustand-Abstand |
+
+Bildschirmränder: 16 dp horizontal, 12 dp zwischen Karten. TopBar-Inhalte 16 dp.
+Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
+
+## Formen
+
+| Token | Radius | Einsatz |
+| --- | --- | --- |
+| extraSmall | 6 dp | Kleine Badges |
+| small | 10 dp | Chips, Suchfeld |
+| medium | 16 dp | Verlaufskarten, Textfelder |
+| large | 24 dp | Bottom-Sheet, Dialoge |
+| extraLarge | 32 dp | Onboarding-Karte |
+
+## Komponenten
+
+- **TopBar**: `CenterAlignedTopAppBar` bzw. `TopAppBar`, Fläche = `surface`,
+  Titel `titleLarge`, Aktionen als 48-dp-Icon-Buttons.
+- **Verlaufskarte**: `surfaceContainerLow`, 16-dp-Radius, 16-dp-Innenabstand,
+  Zeile 1 Datum/Uhrzeit + Dauer, Zeile 2 Label-Chip + Status-Chip, darunter Vorschau
+  (`maxLines = 3`, `TextOverflow.Ellipsis`). Wischgeste nach links zum Löschen.
+- **Status-Chip**: pillenförmig, `labelSmall`, Punkt + Text; Farben wie Statusfarben,
+  Hintergrund = Statusfarbe mit 16 % Alpha.
+- **Label-Chip**: `secondaryContainer`, `labelMedium`, führendes Tag-Icon; editierbar.
+- **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
+  Textbutton für tertiäre Aktionen. Höhe 48 dp, Radius `full`.
+- **Bottom-Sheet-Container**: `surfaceContainerLow`, obere Radien 24 dp, Griff 32 × 4 dp,
+  Innenabstand 16 dp, `navigationBarsPadding`.
+- **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
+  Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
+- **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion
+  (Erneut versuchen / Zum Download).
+
+## Bewegung
+
+Standard-Material-Easing, 150–300 ms. Sheet-Einblendung von unten, Fortschritt als lineare
+Animation. Keine dekorativen Dauer-Animationen, um Akku zu schonen.
+
+## Barrierefreiheit
+
+- Kontrast mindestens 4.5:1 für Text; Status nie nur über Farbe, immer mit Text/Icon.
+- Touch-Ziele mindestens 48 dp.
+- Inhaltsbeschreibungen für Play/Pause, Löschen, Einstellungen.
+- Schriftgrößen skalieren mit den Systemeinstellungen (sp statt dp).

@@ -1,0 +1,51 @@
+# Freebuff / local agent state
+.freebuff/
+
+# Gradle
+.gradle/
+build/
+**/build/
+!docs/**
+gradle-app.setting
+.gradletasknamecache
+
+# Local configuration
+local.properties
+local.properties.*
+*.iml
+
+# Android Studio / IntelliJ
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+
+# Signing material — never commit
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+*.p12
+
+# Whisper models are downloaded at runtime and never belong in the repo
+*.bin
+*.ggml
+models/
+
+# Native build artefacts
+obj/
+libs/*.so
+app/src/main/jniLibs/
+
+# OS noise
+.DS_Store
+Thumbs.db
