@@ -7,6 +7,16 @@
 - Alle sichtbaren Strings liegen in `app/src/main/res/values/strings.xml` – keine
   hartkodierten UI-Texte in Composables.
 
+## Dokumentation
+
+- `README.md`, `AGENTS.md` und alle Dateien in `docs/` werden bei jeder Änderung im selben
+  Commit mitgepflegt. Der Agent hält sie immer auf dem neuesten Stand.
+- Ändern sich Verhalten, Befehle, Architektur, Konventionen oder Abhängigkeiten, gehört die
+  passende Doku-Aktualisierung zur selben Änderung – nicht in einen späteren Commit.
+- Die Doku beschreibt den aktuellen Stand von `develop`. Veraltete Angaben werden korrigiert
+  statt durch neue Zusätze überdeckt.
+- Eine Änderung ohne aktualisierte Doku gilt als unfertig.
+
 ## Commits
 
 - Conventional Commits, Betreff im Imperativ und auf Englisch, z. B.

@@ -77,6 +77,12 @@ Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 - Commit-Nachrichten: Conventional Commits, **auf Englisch**, Stichpunkte im Body,
   z. B. `feat(settings): Add audio retention selection`.
 
+## Dokumentation
+
+`README.md`, `AGENTS.md` und alle Dateien in `docs/` beschreiben immer den aktuellen Stand
+von `develop` und werden bei jeder Änderung im selben Commit mitgepflegt. Die
+Doku-Pflege ist Pflicht, nicht optional.
+
 ## Datenschutz
 
 Alle Audiodaten und Transkripte bleiben im app-privaten Speicher. `INTERNET` wird nur für
