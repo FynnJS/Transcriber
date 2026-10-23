@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.Share
@@ -72,6 +73,7 @@ import dev.fynnjs.transcriber.ui.components.TranscriptionProgressBar
 import dev.fynnjs.transcriber.ui.components.modelStateLabel
 import dev.fynnjs.transcriber.ui.util.formatDate
 import dev.fynnjs.transcriber.ui.util.formatDuration
+import dev.fynnjs.transcriber.ui.util.formatSizeMb
 import dev.fynnjs.transcriber.ui.util.formatTime
 import dev.fynnjs.transcriber.ui.util.languageLabel
 import kotlinx.coroutines.launch
@@ -402,7 +404,10 @@ internal fun DetailModelPicker(
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                                 Text(
-                                    text = modelStateLabel(
+                                    text = stringResource(
+                                        R.string.settings_model_size,
+                                        formatSizeMb(model.approxBytes),
+                                    ) + " · " + modelStateLabel(
                                         states[model] ?: ModelState.NotDownloaded,
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
@@ -424,19 +429,36 @@ internal fun DetailModelPicker(
             }
         }
 
-        if (selectedState is ModelState.Downloading) {
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { selectedState.progress / 100f },
-                modifier = Modifier.fillMaxWidth(),
-                drawStopIndicator = {},
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.settings_model_downloading, selectedState.progress),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        when (selectedState) {
+            is ModelState.Downloading -> {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { selectedState.progress / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                    drawStopIndicator = {},
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(
+                        R.string.settings_model_downloading,
+                        selectedState.progress,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // A failed download restarts from here, matching the settings screen.
+            is ModelState.Failed -> {
+                Spacer(Modifier.height(8.dp))
+                SecondaryButton(
+                    text = stringResource(R.string.settings_model_download),
+                    onClick = { onSelect(selected) },
+                    icon = Icons.Outlined.Download,
+                )
+            }
+
+            else -> Unit
         }
     }
 }

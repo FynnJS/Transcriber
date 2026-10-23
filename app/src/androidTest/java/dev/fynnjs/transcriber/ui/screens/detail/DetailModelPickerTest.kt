@@ -7,6 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.fynnjs.transcriber.R
+import dev.fynnjs.transcriber.domain.model.ModelError
 import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.theme.TranscriberTheme
@@ -61,9 +62,24 @@ class DetailModelPickerTest {
         composeRule.onNodeWithText(WhisperModel.SMALL.displayName).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText(string(R.string.settings_model_not_downloaded))
+        composeRule.onNodeWithText(string(R.string.settings_model_not_downloaded), substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText(WhisperModel.BASE.displayName).performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(WhisperModel.BASE, selected)
+    }
+
+    @Test
+    fun aFailedDownloadCanBeRestartedFromThePicker() {
+        showPicker(
+            selectedModel = WhisperModel.BASE,
+            states = mapOf(
+                WhisperModel.SMALL to ModelState.NotDownloaded,
+                WhisperModel.BASE to ModelState.Failed(ModelError.DOWNLOAD_FAILED),
+            ),
+        )
+        composeRule.onNodeWithText(string(R.string.settings_model_download)).performClick()
         composeRule.waitForIdle()
 
         assertEquals(WhisperModel.BASE, selected)
