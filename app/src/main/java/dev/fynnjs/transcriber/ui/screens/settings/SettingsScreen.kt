@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.biometric.BiometricManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -511,13 +512,16 @@ private fun SwitchRow(
 
 @Composable
 private fun SettingValueRow(title: String, value: String, onClick: () -> Unit) {
-    Row(
+    // FlowRow keeps the full title width when large font scales leave no room for the value.
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
         TextButton(onClick = onClick) { Text(value) }
     }
 }
