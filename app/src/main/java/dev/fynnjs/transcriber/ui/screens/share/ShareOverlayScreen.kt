@@ -54,6 +54,7 @@ import dev.fynnjs.transcriber.domain.model.TranscriptionStatus
 import dev.fynnjs.transcriber.ui.components.AudioPlayer
 import dev.fynnjs.transcriber.ui.components.BottomSheetContainer
 import dev.fynnjs.transcriber.ui.components.ErrorState
+import dev.fynnjs.transcriber.ui.components.HeadingText
 import dev.fynnjs.transcriber.ui.components.LabelChip
 import dev.fynnjs.transcriber.ui.components.LabelEditorDialog
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
@@ -115,10 +116,7 @@ fun ShareOverlayScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.share_title),
-                                style = MaterialTheme.typography.titleLarge,
-                            )
+                            HeadingText(text = stringResource(R.string.share_title))
                             val subtitle = when (uiState) {
                                 is ShareUiState.Ready -> uiState.entry.sourceFileName
                                 is ShareUiState.Failed -> stringResource(R.string.share_error_title)

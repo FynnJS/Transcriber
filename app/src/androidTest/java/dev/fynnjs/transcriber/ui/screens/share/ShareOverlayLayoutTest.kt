@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -118,6 +120,31 @@ class ShareOverlayLayoutTest {
         composeRule.onNodeWithText(context().getString(R.string.action_close))
             .performScrollTo()
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun headingBreaksBetweenWordsAtLargeFontScale() {
+        showOverlay(widthDp = 240, fontScale = 2f)
+        val layouts = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithText(context().getString(R.string.share_title), useUnmergedTree = true)
+            .fetchSemanticsNode()
+            .config[SemanticsActions.GetTextLayoutResult]
+            .action
+            ?.invoke(layouts)
+        val layout = layouts.single()
+        val text = layout.layoutInput.text.text
+        fun breaksBetweenWords(index: Int): Boolean {
+            if (index <= 0 || index >= text.length) return true
+            val before = text[index - 1]
+            val after = text[index]
+            return before.isWhitespace() || after.isWhitespace() || before == '-' || after == '-'
+        }
+        for (line in 0 until layout.lineCount - 1) {
+            assertTrue(
+                "heading breaks a word at line $line: '${text.take(layout.getLineEnd(line))}'",
+                breaksBetweenWords(layout.getLineEnd(line)),
+            )
+        }
     }
 
     @Test

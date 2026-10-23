@@ -82,6 +82,10 @@ Systemschrift (Roboto / SansSerif), keine zusätzlichen Font-Dateien.
 Transkripte nutzen `bodyLarge` mit `lineHeight 24sp`; Vorschauen werden auf zwei bis drei
 Zeilen gekürzt. Zahlen in Dauerangaben stehen in `labelMedium` mit tabellarischen Ziffern.
 
+Überschriften laufen über `HeadingText`: Passt das längste Wort nicht in die verfügbare
+Breite (sehr schmale Displays, große Systemschrift), sinkt die Schriftgröße in 1-sp-Schritten
+bis auf 10 sp, statt das Wort mitten im Wort umzubrechen.
+
 ## Abstände
 
 4-dp-Raster:
