@@ -26,6 +26,13 @@
 - Mehrzeilige Bodies als Stichpunkte (`- …`).
 - Feature-Branches `feature/<name>` von `develop`; `main` nur per Pull Request.
 - Kein `git add -A`; nur die eigenen Dateien stagen.
+- Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und
+  ihre Funktionalität vollständig (100 %) bestätigen. Ohne eines von beidem wird nicht
+  committet.
+- Änderungen sinnvoll splitten: ein Commit pro abgeschlossener, eigenständiger Änderung statt
+  einem Sammelcommit über mehrere Themen.
+- Jeder Commit hält das bestehende Format ein: `typ(scope): Betreff` im Imperativ, Body als
+  Stichpunkte, keine weiteren Abweichungen.
 
 ## Architekturregeln
 

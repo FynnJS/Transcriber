@@ -78,6 +78,10 @@ Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 - Release: PR von `develop` nach `main` plus Tag `vX.Y.Z`.
 - Commit-Nachrichten: Conventional Commits, **auf Englisch**, Stichpunkte im Body,
   z. B. `feat(settings): Add audio retention selection`.
+- Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und
+  ihre Funktionalität vollständig bestätigen.
+- Nur als FynnJS, ohne Co-Author-Zeilen oder „Generated with …“-Fußzeilen.
+- Änderungen sinnvoll gesplittet committen: ein Commit pro eigenständiger Änderung.
 
 ## Dokumentation
 
