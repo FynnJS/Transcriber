@@ -215,16 +215,22 @@ class TranscriptionService : Service() {
         )
         val text = fileName?.let { getString(R.string.transcription_notification_file, it) }
             ?: getString(R.string.transcription_notification_preparing)
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_transcribe)
             .setContentTitle(getString(R.string.transcription_notification_title))
             .setContentText(text)
-            .setProgress(100, progress.coerceIn(0, 100), false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(pendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-            .build()
+        // Whisper reports nothing until the first segment window is decoded, so a determinate
+        // 0 % bar would look stuck; run the bar indeterminate until a real value exists.
+        if (progress > 0) {
+            builder.setProgress(100, progress.coerceIn(0, 100), false)
+        } else {
+            builder.setProgress(0, 0, true)
+        }
+        return builder.build()
     }
 
     private fun ensureChannel() {
