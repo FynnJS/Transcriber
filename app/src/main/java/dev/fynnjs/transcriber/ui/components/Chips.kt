@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -124,7 +125,12 @@ fun LabelChip(
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
             )
-            Text(text = label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (onRemove != null) {
                 Spacer(Modifier.width(2.dp))
                 Icon(

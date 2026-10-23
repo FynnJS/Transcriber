@@ -377,18 +377,20 @@ private fun ReadyContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (entry.label.isNullOrBlank()) {
-                LabelChip(
-                    label = stringResource(R.string.detail_label_add),
-                    onClick = onEditLabel,
-                )
-            } else {
-                LabelChip(
-                    label = entry.label.orEmpty(),
-                    onClick = onEditLabel,
-                )
+            // The chip takes the flexible space so the actions next to it keep their size.
+            Box(Modifier.weight(1f)) {
+                if (entry.label.isNullOrBlank()) {
+                    LabelChip(
+                        label = stringResource(R.string.detail_label_add),
+                        onClick = onEditLabel,
+                    )
+                } else {
+                    LabelChip(
+                        label = entry.label.orEmpty(),
+                        onClick = onEditLabel,
+                    )
+                }
             }
-            Spacer(Modifier.weight(1f))
             if (entry.hasTranscript) {
                 IconButton(onClick = {
                     clipboard.setText(AnnotatedString(entry.transcript.orEmpty()))
