@@ -152,7 +152,11 @@
     <string name="onboarding_download_title">Sprachmodell laden</string>
     <string name="onboarding_download_text">Einmalig %1$s über WLAN laden. Danach funktioniert die Transkription komplett offline.</string>
     <string name="onboarding_download_button">Modell laden (%1$s)</string>
+    <string name="onboarding_download_button_multi">Modelle laden (%1$s)</string>
     <string name="onboarding_downloading">Download läuft … %1$d %%</string>
+    <string name="onboarding_base_option">Auch Base-Modell laden (%1$s)</string>
+    <string name="onboarding_base_downloading">Base-Modell wird zusätzlich geladen … %1$d %%</string>
+    <string name="onboarding_base_failed">Base-Modell konnte nicht geladen werden – später in den Einstellungen erneut versuchen.</string>
     <string name="onboarding_error_failed">Download fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
     <string name="onboarding_error_checksum">Die Datei ist beschädigt. Bitte lade sie erneut.</string>
     <string name="onboarding_error_space">Nicht genug Speicherplatz für das Modell.</string>

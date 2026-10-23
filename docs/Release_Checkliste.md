@@ -38,8 +38,9 @@ Installieren: `adb install -r transcriber-release.apk`
 ## 2. Vorbereitung auf dem Gerät
 
 - [ ] Gerät entsperrt, mindestens ein Fingerabdruck/Gesicht registriert (Einstellungen → Sicherheit).
-- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base).
-- [ ] WLAN aktiv, App einmal starten, Onboarding abschließen, Modell laden lassen.
+- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base), mit beiden Modellen zusammen 239 MB.
+- [ ] WLAN aktiv, App einmal starten, Onboarding abschließen, Modell laden lassen (optional „Auch Base-Modell laden“ aktivieren → beide Modelle werden geladen, der Hinweistext und die Schaltfläche zeigen dann zusammen 239 MB).
+- [ ] Nach dem Onboarding in den Einstellungen prüfen: Base steht als „Bereit“, falls die Option gewählt wurde.
 - [ ] Eine Sprachnachricht über WhatsApp teilen → Transkript erscheint im Overlay (Basisfall).
 
 ## 3. Biometrie-App-Sperre

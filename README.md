@@ -8,7 +8,8 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 
 - Teilen-Ziel für `audio/*`: schlankes Bottom-Sheet-Overlay, eine Nachricht pro Vorgang
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
-  Schnell-Option; Spracherkennung automatisch oder Deutsch)
+  Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
+  Deutsch)
 - Inkognito-Player für die lokale Audiodatei (WhatsApp erhält keine Wiedergabe-Info)
 - Verlauf mit Volltextsuche (FTS), Labels, Kopieren, Teilen, Löschen
 - Aufbewahrungsfristen für Audio und Transkript, tägliche Bereinigung
