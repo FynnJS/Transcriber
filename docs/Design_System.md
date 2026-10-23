@@ -119,7 +119,8 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   Hintergrund = Statusfarbe mit 16 % Alpha.
 - **Label-Chip**: `secondaryContainer`, `labelMedium`, führendes Tag-Icon; editierbar.
 - **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
-  Textbutton für tertiäre Aktionen. Höhe 48 dp, Radius `full`.
+  Textbutton für tertiäre Aktionen. Mindesthöhe 48 dp, Radius `full`; bei großen
+  Schriftgrößen wachsen sie mit dem Text, statt ihn abzuschneiden.
 - **Bottom-Sheet-Container**: `surfaceContainerLow`, obere Radien 24 dp, Griff 32 × 4 dp,
   Innenabstand 16 dp, `navigationBarsPadding`.
 - **Teilen-Overlay**: Label-Chip in eigener Zeile, darunter Kopieren/Teilen und

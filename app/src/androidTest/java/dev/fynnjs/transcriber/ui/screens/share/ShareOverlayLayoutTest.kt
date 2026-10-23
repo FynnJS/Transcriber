@@ -3,11 +3,17 @@ package dev.fynnjs.transcriber.ui.screens.share
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -46,18 +52,21 @@ class ShareOverlayLayoutTest {
 
     private fun context() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    private fun showOverlay(widthDp: Int) {
+    private fun showOverlay(widthDp: Int, fontScale: Float = 1f) {
         composeRule.setContent {
-            TranscriberTheme(darkTheme = true) {
-                Box(Modifier.width(widthDp.dp).fillMaxHeight()) {
-                    ShareOverlayScreen(
-                        uiState = ShareUiState.Ready(entry = entry, duplicate = false, modelMissing = false),
-                        recentLabels = emptyList(),
-                        onSaveLabel = {},
-                        onRetry = {},
-                        onClose = {},
-                        onOpenApp = {},
-                    )
+            val base = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale)) {
+                TranscriberTheme(darkTheme = true) {
+                    Box(Modifier.width(widthDp.dp).fillMaxHeight()) {
+                        ShareOverlayScreen(
+                            uiState = ShareUiState.Ready(entry = entry, duplicate = false, modelMissing = false),
+                            recentLabels = emptyList(),
+                            onSaveLabel = {},
+                            onRetry = {},
+                            onClose = {},
+                            onOpenApp = {},
+                        )
+                    }
                 }
             }
         }
@@ -91,5 +100,21 @@ class ShareOverlayLayoutTest {
     @Test
     fun keepsLabelReadableOnVeryNarrowDisplay() {
         assertLabelAndActionsVisible(widthDp = 240)
+    }
+
+    @Test
+    fun keepsButtonLabelsUnclippedAtLargeFontScale() {
+        showOverlay(widthDp = 240, fontScale = 2f)
+        listOf(R.string.share_open_in_app, R.string.action_close).forEach { resId ->
+            val label = context().getString(resId)
+            val button = composeRule.onNode(hasText(label) and hasClickAction())
+                .fetchSemanticsNode().boundsInRoot
+            val text = composeRule.onAllNodesWithText(label, useUnmergedTree = true)
+                .fetchSemanticsNodes().single().boundsInRoot
+            assertTrue(
+                "button label '$label' is clipped",
+                text.top > button.top && text.bottom < button.bottom,
+            )
+        }
     }
 }
