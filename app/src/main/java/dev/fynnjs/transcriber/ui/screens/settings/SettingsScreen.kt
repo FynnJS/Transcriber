@@ -406,6 +406,7 @@ private fun ModelRow(
                 LinearProgressIndicator(
                     progress = { state.progress / 100f },
                     modifier = Modifier.fillMaxWidth(),
+                    drawStopIndicator = {},
                 )
             }
         }

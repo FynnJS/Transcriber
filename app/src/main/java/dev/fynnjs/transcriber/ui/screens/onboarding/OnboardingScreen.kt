@@ -129,6 +129,7 @@ fun OnboardingScreen(
                             LinearProgressIndicator(
                                 progress = { current.progress / 100f },
                                 modifier = Modifier.fillMaxWidth(),
+                                drawStopIndicator = {},
                             )
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
