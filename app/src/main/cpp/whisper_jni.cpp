@@ -20,6 +20,11 @@ struct TranscriberContext {
     JavaVM * vm = nullptr;
     jobject listener = nullptr;
     jmethodID on_progress = nullptr;
+
+    // Length of the input in 10 ms units and the last reported percentage, so progress
+    // derived from decoded segments and whisper's segment windows stays monotonic.
+    int total_cs = 0;
+    int last_progress = 0;
 };
 
 TranscriberContext * from_handle(jlong handle) {
@@ -67,12 +72,45 @@ void report_progress(TranscriberContext * handle, int progress) {
     }
 }
 
+/**
+ * Reports a percentage only when it advances. Whisper reports 100 for the last window, but the
+ * transcript is not finished at that point, so the bar stops at 99 until the service completes
+ * the entry.
+ */
+void emit_progress(TranscriberContext * handle, int progress) {
+    const int clamped = progress < 0 ? 0 : (progress > 99 ? 99 : progress);
+    if (clamped <= handle->last_progress) {
+        return;
+    }
+    handle->last_progress = clamped;
+    report_progress(handle, clamped);
+}
+
+// Whisper only reports progress once per segment window (about 30 s of audio), which leaves the
+// bar at 0 % for short voice messages. The end of the last decoded segment gives a much finer
+// estimate, independent of the window size.
+void segment_callback(whisper_context * ctx, whisper_state * /*state*/, int /*n_new*/, void * user_data) {
+    auto * handle = static_cast<TranscriberContext *>(user_data);
+    if (handle == nullptr || handle->total_cs <= 0) {
+        return;
+    }
+    const int segments = whisper_full_n_segments(ctx);
+    if (segments <= 0) {
+        return;
+    }
+    const int64_t decoded_cs = whisper_full_get_segment_t1(ctx, segments - 1);
+    if (decoded_cs <= 0) {
+        return;
+    }
+    emit_progress(handle, static_cast<int>((100 * decoded_cs) / handle->total_cs));
+}
+
 void progress_callback(whisper_context * /*ctx*/, whisper_state * /*state*/, int progress, void * user_data) {
     auto * handle = static_cast<TranscriberContext *>(user_data);
     if (handle == nullptr) {
         return;
     }
-    report_progress(handle, progress);
+    emit_progress(handle, progress);
 }
 
 void log_callback(enum ggml_log_level level, const char * text, void * /*user_data*/) {
@@ -162,6 +200,9 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
     env->GetFloatArrayRegion(samples, 0, count, pcm.data());
 
     handle->canceled.store(false);
+    handle->last_progress = 0;
+    // Input is 16 kHz mono, so one 10 ms unit is 160 samples.
+    handle->total_cs = count / 160;
     handle->listener = listener;
     handle->on_progress = nullptr;
     if (listener != nullptr) {
@@ -199,6 +240,8 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
     params.detect_language = false;
     params.progress_callback = progress_callback;
     params.progress_callback_user_data = handle;
+    params.new_segment_callback = segment_callback;
+    params.new_segment_callback_user_data = handle;
     params.abort_callback = abort_callback;
     params.abort_callback_user_data = handle;
 
