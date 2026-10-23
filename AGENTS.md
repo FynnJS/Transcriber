@@ -65,4 +65,5 @@ Submodule unter `third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie ei
 
 - Keystores, `local.properties` und Modell-Dateien niemals committen.
 - Audio/Transkripte bleiben im app-privaten Speicher, keine Logs mit Transkriptinhalten.
-- `FLAG_SECURE` und App-Sperre respektieren die Nutzereinstellung.
+- `FLAG_SECURE` und App-Sperre respektieren die Nutzereinstellung. Die App-Sperre schützt
+  bewusst nur den Verlauf; das Teilen-Overlay (`ShareReceiverActivity`) bleibt ungeschützt.

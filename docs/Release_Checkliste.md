@@ -55,6 +55,7 @@ Installieren: `adb install -r transcriber-release.apk`
 - [ ] App-Sperre ausschalten → Biometrie-Abfrage erscheint; erst nach Bestätigung steht der Schalter auf aus und es erscheint kein Sperrbildschirm mehr.
 - [ ] Biometrie-Abfrage beim Ausschalten abbrechen → Schalter bleibt an, App-Sperre ist weiterhin aktiv.
 - [ ] Alle Fingerabdrücke in den Systemeinstellungen entfernen → App darf nicht in einen ungesperrten Zustand fallen (Hinweistext in den Einstellungen prüfen).
+- [ ] Nachricht über das Teilen-Overlay öffnen (App-Sperre aktiv) → das Overlay zeigt das Transkript ohne zusätzliche Abfrage; der Verlauf bleibt beim Zurückkehren gesperrt.
 
 ## 4. Aufbewahrungsfristen
 

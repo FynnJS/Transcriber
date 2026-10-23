@@ -96,3 +96,7 @@ Doku-Pflege ist Pflicht, nicht optional.
 Alle Audiodaten und Transkripte bleiben im app-privaten Speicher. `INTERNET` wird nur für
 den Modelldownload verwendet. Keine Analyse-, Werbe- oder Crash-SDKs. `allowBackup` ist
 deaktiviert, Datenbank und Audioordner sind von Backup und Geräteübertragung ausgeschlossen.
+
+Die optionale App-Sperre schützt ausschließlich den Verlauf samt Detailansicht und
+Einstellungen. Das Teilen-Overlay (`ShareReceiverActivity`) bleibt bewusst ungeschützt,
+damit eine geteilte Nachricht ohne zusätzliche Hürde transkribiert werden kann.
