@@ -128,6 +128,11 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   Lange Labels werden gekürzt, das Entfernen-Icon bleibt dabei sichtbar.
 - **Detail-Aktionen**: Label-Chip und Label-Aktionen stehen in einer `FlowRow`; reicht die
   Breite nicht, rücken die Aktionen in die nächste Zeile, statt aus dem Bild zu scrollen.
+- **Detail-Transkript**: Der Bereich zeigt das Transkript, sobald eines vorliegt. Der leere
+  Zustand („Kein Text erkannt“) gehört ausschließlich zu `DONE`; solange ein Eintrag
+  `QUEUED` oder `TRANSCRIBING` ist, steht dort ein Hinweis auf das ausstehende Transkript,
+  und bei `FAILED` ohne Text erklärt allein der Fehlerzustand den Eintrag. Ein erneuter
+  Versuch zeigt damit nie „Kein Text erkannt“, während die Transkription noch läuft.
 - **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
   Textbutton für tertiäre Aktionen. Mindesthöhe 48 dp, Radius `full`; bei großen
   Schriftgrößen wachsen sie mit dem Text, statt ihn abzuschneiden.
