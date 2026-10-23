@@ -27,7 +27,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -63,6 +62,7 @@ import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.StatusChip
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
+import dev.fynnjs.transcriber.ui.components.TranscriptionProgressBar
 import dev.fynnjs.transcriber.ui.util.formatDate
 import dev.fynnjs.transcriber.ui.util.formatDuration
 import dev.fynnjs.transcriber.ui.util.formatTime
@@ -267,16 +267,23 @@ fun DetailScreen(
                 current.status == TranscriptionStatus.TRANSCRIBING
             ) {
                 Spacer(Modifier.height(16.dp))
-                LinearProgressIndicator(
-                    progress = { current.progress / 100f },
+                TranscriptionProgressBar(
+                    progress = current.progress,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = if (current.status == TranscriptionStatus.QUEUED) {
-                        stringResource(R.string.status_queued)
-                    } else {
-                        stringResource(R.string.status_transcribing)
+                    text = when {
+                        current.status == TranscriptionStatus.QUEUED ->
+                            stringResource(R.string.status_queued)
+
+                        current.progress > 0 -> stringResource(
+                            R.string.status_progress,
+                            stringResource(R.string.status_transcribing),
+                            current.progress,
+                        )
+
+                        else -> stringResource(R.string.status_transcribing)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
