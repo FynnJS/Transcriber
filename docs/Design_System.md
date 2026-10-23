@@ -146,7 +146,9 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
 - **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
   Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
 - **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion
-  (Erneut versuchen / Zum Download).
+  (Erneut versuchen / Zum Download). „Erneut versuchen“ meldet nur dann „Transkription neu
+  gestartet“, wenn das Modell bereit ist; fehlt oder lädt es noch, erklärt die Rückmeldung
+  den fehlenden Download, statt einen Start zu behaupten.
 
 ## Bewegung
 

@@ -88,6 +88,7 @@ fun DetailScreen(
 
     val copiedText = stringResource(R.string.copied)
     val retryStarted = stringResource(R.string.detail_retry_started)
+    val retryBlocked = stringResource(R.string.error_model_missing)
     val shareChooser = stringResource(R.string.detail_share_chooser)
 
     if (showDeleteDialog) {
@@ -273,8 +274,11 @@ fun DetailScreen(
                     message = current.errorMessage ?: stringResource(R.string.error_generic),
                     actionLabel = stringResource(R.string.action_retry),
                     onAction = {
-                        viewModel.retry()
-                        scope.launch { snackbarHostState.showSnackbar(retryStarted) }
+                        // Without a downloaded model nothing starts, so no success message.
+                        val started = viewModel.retry(current)
+                        scope.launch {
+                            snackbarHostState.showSnackbar(if (started) retryStarted else retryBlocked)
+                        }
                     },
                 )
                 Spacer(Modifier.height(8.dp))

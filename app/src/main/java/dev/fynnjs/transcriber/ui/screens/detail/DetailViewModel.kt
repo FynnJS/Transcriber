@@ -56,14 +56,20 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun retry() {
+    /**
+     * Restarts the transcription of [entry].
+     *
+     * Returns false when the model is not downloaded yet; nothing is queued in that case, so
+     * the caller must not report a started transcription.
+     */
+    fun retry(entry: HistoryEntry): Boolean {
+        val model = WhisperModel.fromId(entry.modelUsed)
+        if (!modelRepository.isReady(model)) return false
         viewModelScope.launch {
-            val current = entry.value ?: return@launch
-            val model = WhisperModel.fromId(current.modelUsed)
-            if (!modelRepository.isReady(model)) return@launch
-            historyRepository.updateStatus(current.id, TranscriptionStatus.QUEUED)
-            TranscriptionService.enqueue(context, current.id)
+            historyRepository.updateStatus(entry.id, TranscriptionStatus.QUEUED)
+            TranscriptionService.enqueue(context, entry.id)
         }
+        return true
     }
 
     fun delete(onDeleted: () -> Unit) {
