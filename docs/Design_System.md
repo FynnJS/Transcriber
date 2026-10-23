@@ -18,6 +18,9 @@ eine bewusste Alternative.
 Das Logo ist einfarbig grün. Die Akzenttöne werden nur für Verläufe in UI-Elementen wie
 der Waveform verwendet, nicht als Flächenfarbe in der App.
 
+Das Onboarding zeigt das vollständige Logo als 104-dp-Kachel mit `extraLarge`-Radius
+(32 dp) über dem Titel; die Kachel ersetzt dort die frühere Icon-Illustration.
+
 ## Farbschemata
 
 ### Dunkel (Standard)
