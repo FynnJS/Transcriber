@@ -103,58 +103,66 @@ fun ShareOverlayScreen(
                     onClick = {},
                 ),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                // Scrolls when the content exceeds the screen, e.g. on small displays with a
+                // large font scale; short content keeps the sheet compact.
+                Column(
+                    Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.share_title),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        val subtitle = when (uiState) {
-                            is ShareUiState.Ready -> uiState.entry.sourceFileName
-                            is ShareUiState.Failed -> stringResource(R.string.share_error_title)
-                            ShareUiState.Preparing -> stringResource(R.string.share_preparing)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.share_title),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            val subtitle = when (uiState) {
+                                is ShareUiState.Ready -> uiState.entry.sourceFileName
+                                is ShareUiState.Failed -> stringResource(R.string.share_error_title)
+                                ShareUiState.Preparing -> stringResource(R.string.share_preparing)
+                            }
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        IconButton(onClick = onClose) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.action_close),
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    when (uiState) {
+                        ShareUiState.Preparing -> PreparingContent()
+                        is ShareUiState.Failed -> FailedContent(
+                            error = uiState.error,
+                            onClose = onClose,
+                            onOpenApp = onOpenApp,
+                        )
+
+                        is ShareUiState.Ready -> ReadyContent(
+                            state = uiState,
+                            onEditLabel = { showLabelDialog = true },
+                            onRetry = onRetry,
+                            onClose = onClose,
+                            onOpenApp = onOpenApp,
+                            copiedText = copiedText,
+                            shareChooser = shareChooser,
                         )
                     }
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.action_close),
-                        )
-                    }
+
+                    Spacer(Modifier.height(20.dp))
                 }
-
-                Spacer(Modifier.height(8.dp))
-
-                when (uiState) {
-                    ShareUiState.Preparing -> PreparingContent()
-                    is ShareUiState.Failed -> FailedContent(
-                        error = uiState.error,
-                        onClose = onClose,
-                        onOpenApp = onOpenApp,
-                    )
-
-                    is ShareUiState.Ready -> ReadyContent(
-                        state = uiState,
-                        onEditLabel = { showLabelDialog = true },
-                        onRetry = onRetry,
-                        onClose = onClose,
-                        onOpenApp = onOpenApp,
-                        copiedText = copiedText,
-                        shareChooser = shareChooser,
-                    )
-                }
-
-                Spacer(Modifier.height(20.dp))
             }
         }
     }

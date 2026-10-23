@@ -128,7 +128,9 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   Innenabstand 16 dp, `navigationBarsPadding`.
 - **Teilen-Overlay**: Label-Chip in eigener Zeile, darunter Kopieren/Teilen und
   „In der App öffnen“ als `FlowRow` (rechtsbündig). Auf schmalen Displays bricht die
-  Aktionszeile um, statt den Chip zu quetschen; „Schließen“ bleibt voll breit.
+  Aktionszeile um, statt den Chip zu quetschen; „Schließen“ bleibt voll breit. Passt der
+  Inhalt nicht auf den Bildschirm (kleine Displays, große Schrift), scrollt der Inhalt
+  unter dem Griff; der Griff bleibt oben stehen.
 - **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
   Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
 - **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion
