@@ -130,6 +130,8 @@ fun LabelChip(
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                // Keeps the remove icon visible; the label shrinks first.
+                modifier = Modifier.weight(1f, fill = false),
             )
             if (onRemove != null) {
                 Spacer(Modifier.width(2.dp))

@@ -118,6 +118,9 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
 - **Status-Chip**: pillenförmig, `labelSmall`, Punkt + Text; Farben wie Statusfarben,
   Hintergrund = Statusfarbe mit 16 % Alpha.
 - **Label-Chip**: `secondaryContainer`, `labelMedium`, führendes Tag-Icon; editierbar.
+  Lange Labels werden gekürzt, das Entfernen-Icon bleibt dabei sichtbar.
+- **Detail-Aktionen**: Label-Chip und Label-Aktionen stehen in einer `FlowRow`; reicht die
+  Breite nicht, rücken die Aktionen in die nächste Zeile, statt aus dem Bild zu scrollen.
 - **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
   Textbutton für tertiäre Aktionen. Mindesthöhe 48 dp, Radius `full`; bei großen
   Schriftgrößen wachsen sie mit dem Text, statt ihn abzuschneiden.

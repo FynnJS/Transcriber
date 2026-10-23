@@ -1,7 +1,6 @@
 package dev.fynnjs.transcriber.ui.screens.detail
 
 import android.content.Intent
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -216,41 +215,18 @@ fun DetailScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!current.label.isNullOrBlank()) {
-                    LabelChip(
-                        label = current.label.orEmpty(),
-                        onClick = {
-                            labelDraft = current.label.orEmpty()
-                            showLabelDialog = true
-                        },
-                        onRemove = { viewModel.setLabel(null) },
-                    )
-                } else {
-                    SecondaryButton(
-                        text = stringResource(R.string.detail_label_add),
-                        onClick = {
-                            labelDraft = ""
-                            showLabelDialog = true
-                        },
-                        icon = Icons.Outlined.Label,
-                    )
-                }
-                SecondaryButton(
-                    text = stringResource(R.string.detail_edit_label),
-                    onClick = {
-                        labelDraft = current.label.orEmpty()
-                        showLabelDialog = true
-                    },
-                    icon = Icons.Outlined.Edit,
-                )
-            }
+            DetailLabelActions(
+                label = current.label,
+                onAddLabel = {
+                    labelDraft = ""
+                    showLabelDialog = true
+                },
+                onEditLabel = {
+                    labelDraft = current.label.orEmpty()
+                    showLabelDialog = true
+                },
+                onRemoveLabel = { viewModel.setLabel(null) },
+            )
 
             Spacer(Modifier.height(16.dp))
             AudioPlayer(file = audioFile)
@@ -391,3 +367,44 @@ fun DetailScreen(
     }
 }
 
+/**
+ * Label chip and its edit actions.
+ *
+ * The row wraps instead of scrolling, so a long label is ellipsized and the edit action stays
+ * visible on narrow displays.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun DetailLabelActions(
+    label: String?,
+    onAddLabel: () -> Unit,
+    onEditLabel: () -> Unit,
+    onRemoveLabel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (!label.isNullOrBlank()) {
+            LabelChip(
+                label = label,
+                onClick = onEditLabel,
+                onRemove = onRemoveLabel,
+            )
+        } else {
+            SecondaryButton(
+                text = stringResource(R.string.detail_label_add),
+                onClick = onAddLabel,
+                icon = Icons.Outlined.Label,
+            )
+        }
+        SecondaryButton(
+            text = stringResource(R.string.detail_edit_label),
+            onClick = onEditLabel,
+            icon = Icons.Outlined.Edit,
+        )
+    }
+}
