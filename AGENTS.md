@@ -47,9 +47,12 @@
 ./gradlew connectedDebugAndroidTest
 ```
 
-`JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert). NDK 28.2 und
-CMake 3.22 sind über die SDK-Installation vorhanden. whisper.cpp liegt als Submodule unter
-`third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie eingecheckt.
+`JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert).
+`gradle/gradle-daemon-jvm.properties` ist lokale Konfiguration, ist in `.gitignore` und wird
+nicht committet; der Daemon nutzt die lokal installierte JDK.
+
+NDK 28.2 und CMake 3.22 sind über die SDK-Installation vorhanden. whisper.cpp liegt als
+Submodule unter `third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie eingecheckt.
 
 ## Sicherheit
 

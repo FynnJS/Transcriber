@@ -54,8 +54,10 @@ git submodule update --init --recursive
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
 
-`local.properties` mit `sdk.dir` wird nicht eingecheckt. Der Release-Keystore liegt
-ausschließlich lokal bzw. in sicheren CI-Secrets.
+`local.properties` mit `sdk.dir` wird nicht eingecheckt. Auch
+`gradle/gradle-daemon-jvm.properties` bleibt lokal (ignoriert); der Gradle-Daemon nutzt die
+installierte JDK ≥ 17. Der Release-Keystore liegt ausschließlich lokal bzw. in sicheren
+CI-Secrets.
 
 ## Modelle
 

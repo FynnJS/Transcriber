@@ -3,6 +3,8 @@
 
 # Gradle
 .gradle/
+# Local daemon JVM selection; the build only requires a local JDK >= 17
+gradle/gradle-daemon-jvm.properties
 build/
 **/build/
 !docs/**
