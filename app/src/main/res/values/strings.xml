@@ -110,12 +110,12 @@
     <string name="settings_language_auto">Automatisch erkennen</string>
     <string name="settings_language_de">Deutsch</string>
     <string name="settings_section_retention">Aufbewahrung</string>
-    <string name="settings_audio_retention">Audio</string>
-    <string name="settings_transcript_retention">Transkript</string>
+    <string name="settings_audio_retention">Audio löschen</string>
+    <string name="settings_transcript_retention">Transkript löschen</string>
     <string name="retention_immediately">Sofort nach Transkription</string>
-    <string name="retention_7_days">7 Tage</string>
-    <string name="retention_30_days">30 Tage</string>
-    <string name="retention_90_days">90 Tage</string>
+    <string name="retention_7_days">Nach 7 Tagen</string>
+    <string name="retention_30_days">Nach 30 Tagen</string>
+    <string name="retention_90_days">Nach 90 Tagen</string>
     <string name="retention_never">Nie</string>
     <string name="settings_section_privacy">Datenschutz</string>
     <string name="settings_app_lock">App-Sperre</string>

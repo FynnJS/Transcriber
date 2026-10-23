@@ -60,13 +60,13 @@ Installieren: `adb install -r transcriber-release.apk`
 
 ## 4. Aufbewahrungsfristen
 
-Einstellungen → Aufbewahrung (Audio / Transkript).
+Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 
-- [ ] **Audio = Sofort**: Nachricht teilen, Transkription abwarten → Detailansicht zeigt keinen Player mehr, `files/audio/` ist leer, Transkript bleibt erhalten.
-- [ ] **Audio = 30 Tage**: Nachricht teilen und transkribieren → Audiodatei bleibt abspielbar.
+- [ ] **Audio löschen = Sofort nach Transkription**: Nachricht teilen, Transkription abwarten → Detailansicht zeigt keinen Player mehr, `files/audio/` ist leer, Transkript bleibt erhalten.
+- [ ] **Audio löschen = Nach 30 Tagen**: Nachricht teilen und transkribieren → Audiodatei bleibt abspielbar.
 - [ ] **Ablauf simulieren**: Gerätedatum 31 Tage vorstellen, App vollständig beenden und neu starten (löst `CleanupWorker` über `runNow()` aus) → alte Audiodatei ist gelöscht, Verlaufseintrag und Transkript bleiben sichtbar; Datum danach zurücksetzen.
-- [ ] **Transkript = Nie** (Standard): Einträge überleben den simulierten Ablauf.
-- [ ] **Transkript = 30 Tage**: gleicher Ablauf, jetzt verschwindet auch der Eintrag aus dem Verlauf.
+- [ ] **Transkript löschen = Nie** (Standard): Einträge überleben den simulierten Ablauf.
+- [ ] **Transkript löschen = Nach 30 Tagen**: gleicher Ablauf, jetzt verschwindet auch der Eintrag aus dem Verlauf.
 - [ ] Nach dem Löschen: Suche findet die alten Begriffe nicht mehr (FTS-Index).
 
 ## 5. Notification-Berechtigung
