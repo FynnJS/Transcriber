@@ -44,7 +44,8 @@ Details zu Farben, Typografie und Komponenten: [docs/Design_System.md](docs/Desi
 
 ## Build
 
-Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22.
+Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22. Gradle 9.8.0 kommt
+über den Wrapper, muss also nicht separat installiert werden.
 
 ```bash
 git submodule update --init --recursive
