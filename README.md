@@ -13,7 +13,8 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 - Verlauf mit Volltextsuche (FTS), Labels, Kopieren, Teilen, Löschen
 - Aufbewahrungsfristen für Audio und Transkript, tägliche Bereinigung
 - Dunkles Theme als Standard, helles Theme optional
-- Optionale App-Sperre (Biometrie) und Bildschirmfoto-Schutz
+- Optionale App-Sperre (Biometrie; Ein- und Ausschalten bestätigen, nach jeder Rückkehr aus
+  dem Hintergrund erneut entsperren) und Bildschirmfoto-Schutz
 
 ## Tech-Stack
 

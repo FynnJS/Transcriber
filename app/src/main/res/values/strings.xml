@@ -121,6 +121,11 @@
     <string name="settings_app_lock">App-Sperre</string>
     <string name="settings_app_lock_desc">Beim Start mit Biometrie entsperren</string>
     <string name="settings_app_lock_unavailable">Keine Biometrie eingerichtet – Gerätesperre aktivieren, um die App-Sperre zu nutzen.</string>
+    <string name="settings_app_lock_enable_title">App-Sperre aktivieren</string>
+    <string name="settings_app_lock_enable_subtitle">Bestätige dich einmal, damit die App-Sperre greift.</string>
+    <string name="settings_app_lock_disable_title">App-Sperre deaktivieren</string>
+    <string name="settings_app_lock_disable_subtitle">Bestätige dich, um die App-Sperre auszuschalten.</string>
+    <string name="settings_app_lock_confirm_failed">Nicht bestätigt – die Einstellung bleibt unverändert.</string>
     <string name="settings_secure_screen">Bildschirmfotos verhindern</string>
     <string name="settings_secure_screen_desc">Blockiert Screenshots und Bildschirmaufnahmen in der App</string>
     <string name="settings_delete_all">Alles löschen</string>

@@ -65,6 +65,8 @@ import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.SectionHeader
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
+import dev.fynnjs.transcriber.ui.components.findFragmentActivity
+import dev.fynnjs.transcriber.ui.components.promptForAuthentication
 import dev.fynnjs.transcriber.ui.util.formatSizeMb
 import kotlinx.coroutines.launch
 
@@ -95,6 +97,29 @@ fun SettingsScreen(
     val audioDeletedMessage = stringResource(R.string.settings_audio_deleted_now)
     val allDeletedMessage = stringResource(R.string.settings_data_deleted)
     val modelDeletedMessage = stringResource(R.string.settings_model_deleted)
+    val appLockEnableTitle = stringResource(R.string.settings_app_lock_enable_title)
+    val appLockEnableSubtitle = stringResource(R.string.settings_app_lock_enable_subtitle)
+    val appLockDisableTitle = stringResource(R.string.settings_app_lock_disable_title)
+    val appLockDisableSubtitle = stringResource(R.string.settings_app_lock_disable_subtitle)
+    val appLockConfirmFailedMessage = stringResource(R.string.settings_app_lock_confirm_failed)
+
+    // Enabling and disabling the lock both require one device confirmation.
+    val confirmAppLockChange: (Boolean) -> Unit = { enable ->
+        val activity = context.findFragmentActivity()
+        if (activity == null) {
+            scope.launch { snackbarHostState.showSnackbar(appLockConfirmFailedMessage) }
+        } else {
+            promptForAuthentication(
+                activity = activity,
+                title = if (enable) appLockEnableTitle else appLockDisableTitle,
+                subtitle = if (enable) appLockEnableSubtitle else appLockDisableSubtitle,
+                onSuccess = { viewModel.setAppLock(enable) },
+                onError = {
+                    scope.launch { snackbarHostState.showSnackbar(appLockConfirmFailedMessage) }
+                },
+            )
+        }
+    }
 
     if (showDeleteAllDialog) {
         AlertDialog(
@@ -275,7 +300,7 @@ fun SettingsScreen(
                     },
                     checked = settings.appLock,
                     enabled = biometricAvailable,
-                    onCheckedChange = viewModel::setAppLock,
+                    onCheckedChange = confirmAppLockChange,
                 )
                 SwitchRow(
                     icon = { Icon(Icons.Outlined.Security, null, Modifier.size(20.dp)) },

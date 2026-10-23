@@ -44,13 +44,16 @@ Installieren: `adb install -r transcriber-release.apk`
 
 ## 3. Biometrie-App-Sperre
 
-- [ ] Einstellungen → Datenschutz → **App-Sperre** einschalten (Schalter ist jetzt aktiv, kein Hinweistext mehr).
-- [ ] App in den Hintergrund schicken und wieder öffnen → Sperrbildschirm erscheint, Inhalt (Verlauf) ist verdeckt.
+- [ ] Einstellungen → Datenschutz → **App-Sperre** einschalten (Schalter ist jetzt aktiv, kein Hinweistext mehr) → Biometrie-Abfrage erscheint, erst nach erfolgreicher Bestätigung steht der Schalter auf an.
+- [ ] Biometrie-Abfrage beim Einschalten abbrechen → Schalter bleibt aus, App-Sperre ist nicht aktiv.
+- [ ] App in den Hintergrund schicken (Home oder andere App) und wieder öffnen → Sperrbildschirm erscheint erneut, ohne Kaltstart; Inhalt (Verlauf) ist verdeckt.
+- [ ] Gerät im entsperrten Zustand drehen → App bleibt entsperrt, keine erneute Abfrage.
 - [ ] Entsperren mit Fingerabdruck → App öffnet sich auf dem zuletzt sichtbaren Tab.
 - [ ] Abbrechen/Abbruch-Geste → App bleibt gesperrt, kein Zurück in den Verlauf.
 - [ ] Falscher Finger/Fehlversuch → Fehlermeldung, weiterhin gesperrt.
 - [ ] Gerät sperren und entsperren, App erneut öffnen → erneute Abfrage.
-- [ ] App-Sperre ausschalten → kein Sperrbildschirm mehr.
+- [ ] App-Sperre ausschalten → Biometrie-Abfrage erscheint; erst nach Bestätigung steht der Schalter auf aus und es erscheint kein Sperrbildschirm mehr.
+- [ ] Biometrie-Abfrage beim Ausschalten abbrechen → Schalter bleibt an, App-Sperre ist weiterhin aktiv.
 - [ ] Alle Fingerabdrücke in den Systemeinstellungen entfernen → App darf nicht in einen ungesperrten Zustand fallen (Hinweistext in den Einstellungen prüfen).
 
 ## 4. Aufbewahrungsfristen
