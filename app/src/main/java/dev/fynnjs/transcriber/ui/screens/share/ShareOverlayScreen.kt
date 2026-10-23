@@ -9,6 +9,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -220,6 +222,7 @@ private fun FailedContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReadyContent(
     state: ShareUiState.Ready,
@@ -372,25 +375,25 @@ private fun ReadyContent(
         }
 
         Spacer(Modifier.height(12.dp))
-        Row(
+        // The label sits on its own line so a long label stays readable on narrow screens.
+        if (entry.label.isNullOrBlank()) {
+            LabelChip(
+                label = stringResource(R.string.detail_label_add),
+                onClick = onEditLabel,
+            )
+        } else {
+            LabelChip(
+                label = entry.label.orEmpty(),
+                onClick = onEditLabel,
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // The chip takes the flexible space so the actions next to it keep their size.
-            Box(Modifier.weight(1f)) {
-                if (entry.label.isNullOrBlank()) {
-                    LabelChip(
-                        label = stringResource(R.string.detail_label_add),
-                        onClick = onEditLabel,
-                    )
-                } else {
-                    LabelChip(
-                        label = entry.label.orEmpty(),
-                        onClick = onEditLabel,
-                    )
-                }
-            }
             if (entry.hasTranscript) {
                 IconButton(onClick = {
                     clipboard.setText(AnnotatedString(entry.transcript.orEmpty()))

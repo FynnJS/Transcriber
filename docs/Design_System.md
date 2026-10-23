@@ -122,6 +122,9 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   Textbutton für tertiäre Aktionen. Höhe 48 dp, Radius `full`.
 - **Bottom-Sheet-Container**: `surfaceContainerLow`, obere Radien 24 dp, Griff 32 × 4 dp,
   Innenabstand 16 dp, `navigationBarsPadding`.
+- **Teilen-Overlay**: Label-Chip in eigener Zeile, darunter Kopieren/Teilen und
+  „In der App öffnen“ als `FlowRow` (rechtsbündig). Auf schmalen Displays bricht die
+  Aktionszeile um, statt den Chip zu quetschen; „Schließen“ bleibt voll breit.
 - **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
   Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
 - **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion
