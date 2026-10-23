@@ -55,7 +55,6 @@ import dev.fynnjs.transcriber.BuildConfig
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.domain.model.AppSettings
 import dev.fynnjs.transcriber.domain.model.AudioRetention
-import dev.fynnjs.transcriber.domain.model.ModelError
 import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.ThemeMode
 import dev.fynnjs.transcriber.domain.model.TranscriptionLanguage
@@ -65,6 +64,7 @@ import dev.fynnjs.transcriber.ui.components.InfoRow
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.SectionHeader
+import dev.fynnjs.transcriber.ui.components.modelStateLabel
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
 import dev.fynnjs.transcriber.ui.components.findFragmentActivity
 import dev.fynnjs.transcriber.ui.components.promptForAuthentication
@@ -420,7 +420,7 @@ private fun ModelRow(
             )
             Text(
                 text = stringResource(R.string.settings_model_size, formatSizeMb(model.approxBytes)) +
-                    " · " + stateLabel(state),
+                    " · " + modelStateLabel(state),
                 style = MaterialTheme.typography.labelSmall,
                 color = when (state) {
                     is ModelState.Failed -> MaterialTheme.colorScheme.error
@@ -466,19 +466,6 @@ private fun ModelRow(
             }
         }
     }
-}
-
-@Composable
-private fun stateLabel(state: ModelState): String = when (state) {
-    is ModelState.Ready -> stringResource(R.string.settings_model_ready)
-    is ModelState.Downloading -> stringResource(R.string.settings_model_downloading, state.progress)
-    is ModelState.Failed -> when (state.error) {
-        ModelError.CHECKSUM_MISMATCH -> stringResource(R.string.settings_model_checksum)
-        ModelError.NO_SPACE -> stringResource(R.string.settings_model_no_space)
-        else -> stringResource(R.string.settings_model_failed)
-    }
-
-    ModelState.NotDownloaded -> stringResource(R.string.settings_model_not_downloaded)
 }
 
 @Composable

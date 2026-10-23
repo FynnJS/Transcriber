@@ -10,6 +10,8 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
   Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
   Deutsch)
+- Modell je Nachricht in der Detailansicht wählbar – ein fehlendes Modell wird dort direkt
+  heruntergeladen, danach startet die Transkription von selbst
 - Inkognito-Player für die lokale Audiodatei (WhatsApp erhält keine Wiedergabe-Info)
 - Verlauf mit Volltextsuche (FTS), Labels, Kopieren, Teilen, Löschen
 - Aufbewahrungsfristen für Audio und Transkript, tägliche Bereinigung

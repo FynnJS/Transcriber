@@ -128,6 +128,12 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   Lange Labels werden gekürzt, das Entfernen-Icon bleibt dabei sichtbar.
 - **Detail-Aktionen**: Label-Chip und Label-Aktionen stehen in einer `FlowRow`; reicht die
   Breite nicht, rücken die Aktionen in die nächste Zeile, statt aus dem Bild zu scrollen.
+- **Modellauswahl (Detail)**: Ein sekundärer Dropdown-Button mit Chevron listet beide Modelle
+  mit ihrem Zustand (Bereit, Nicht geladen, Wird geladen … Prozent, Fehler). Die Auswahl gilt
+  nur für diesen Eintrag. Ein nicht geladenes Modell wird sofort heruntergeladen; unter der
+  Auswahl erscheinen Fortschrittsbalken und Prozentwert, und sobald das Modell bereit ist,
+  startet die Transkription automatisch. Die Auswahl steht unter der Fehlerkarte des
+  Eintrags, also dort, wo eine Transkription erneut angestoßen wird.
 - **Detail-Transkript**: Der Bereich zeigt das Transkript, sobald eines vorliegt. Der leere
   Zustand („Kein Text erkannt“) gehört ausschließlich zu `DONE`; solange ein Eintrag
   `QUEUED` oder `TRANSCRIBING` ist, steht dort ein Hinweis auf das ausstehende Transkript,

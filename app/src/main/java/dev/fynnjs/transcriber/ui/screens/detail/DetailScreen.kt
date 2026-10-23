@@ -2,6 +2,7 @@ package dev.fynnjs.transcriber.ui.screens.detail
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -23,9 +26,12 @@ import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -51,6 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.domain.model.HistoryEntry
+import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.TranscriptionStatus
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.components.AudioPlayer
@@ -62,6 +69,7 @@ import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.StatusChip
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
 import dev.fynnjs.transcriber.ui.components.TranscriptionProgressBar
+import dev.fynnjs.transcriber.ui.components.modelStateLabel
 import dev.fynnjs.transcriber.ui.util.formatDate
 import dev.fynnjs.transcriber.ui.util.formatDuration
 import dev.fynnjs.transcriber.ui.util.formatTime
@@ -77,6 +85,7 @@ fun DetailScreen(
     val entry by viewModel.entry.collectAsStateWithLifecycle()
     val audioFile by viewModel.audioFile.collectAsStateWithLifecycle()
     val recentLabels by viewModel.recentLabels.collectAsStateWithLifecycle()
+    val modelStates by viewModel.modelStates.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -281,6 +290,12 @@ fun DetailScreen(
                         }
                     },
                 )
+                Spacer(Modifier.height(12.dp))
+                DetailModelPicker(
+                    selected = WhisperModel.fromId(current.modelUsed),
+                    states = modelStates,
+                    onSelect = viewModel::selectModel,
+                )
                 Spacer(Modifier.height(8.dp))
                 SecondaryButton(
                     text = stringResource(R.string.action_open_settings),
@@ -342,6 +357,86 @@ fun DetailScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+/**
+ * Model dropdown for the next transcription of an entry.
+ *
+ * Every model is listed with its state; choosing one that is not downloaded yet starts the
+ * download from here.
+ */
+@Composable
+internal fun DetailModelPicker(
+    selected: WhisperModel,
+    states: Map<WhisperModel, ModelState>,
+    onSelect: (WhisperModel) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedState = states[selected] ?: ModelState.NotDownloaded
+
+    Column(modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.detail_model_picker),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Spacer(Modifier.height(4.dp))
+        Box {
+            SecondaryButton(
+                text = selected.displayName,
+                onClick = { expanded = true },
+                icon = Icons.Outlined.ArrowDropDown,
+            )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                WhisperModel.entries.forEach { model ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    text = model.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = modelStateLabel(
+                                        states[model] ?: ModelState.NotDownloaded,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        onClick = {
+                            expanded = false
+                            onSelect(model)
+                        },
+                        trailingIcon = if (model == selected) {
+                            { Icon(Icons.Outlined.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+        }
+
+        if (selectedState is ModelState.Downloading) {
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { selectedState.progress / 100f },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = {},
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_model_downloading, selectedState.progress),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -33,6 +33,9 @@ interface HistoryRepository {
 
     suspend fun updateProgress(id: Long, progress: Int)
 
+    /** Chooses the model for the next transcription of this entry. */
+    suspend fun updateModelUsed(id: Long, model: WhisperModel)
+
     suspend fun complete(
         id: Long,
         transcript: String?,

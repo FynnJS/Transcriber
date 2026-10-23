@@ -41,6 +41,9 @@ interface HistoryDao {
     @Query("UPDATE history_entries SET progress = :progress WHERE id = :id")
     suspend fun updateProgress(id: Long, progress: Int)
 
+    @Query("UPDATE history_entries SET modelUsed = :modelUsed WHERE id = :id")
+    suspend fun updateModelUsed(id: Long, modelUsed: String)
+
     @Query(
         """
         UPDATE history_entries

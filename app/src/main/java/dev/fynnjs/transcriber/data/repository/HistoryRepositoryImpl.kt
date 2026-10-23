@@ -50,6 +50,10 @@ class HistoryRepositoryImpl @Inject constructor(
         dao.updateProgress(id, progress.coerceIn(0, 100))
     }
 
+    override suspend fun updateModelUsed(id: Long, model: WhisperModel) {
+        dao.updateModelUsed(id, model.id)
+    }
+
     override suspend fun complete(
         id: Long,
         transcript: String?,
