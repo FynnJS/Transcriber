@@ -9,14 +9,14 @@ eine bewusste Alternative.
 
 | Rolle | Wert |
 | --- | --- |
-| Logo-Grün (Primärfarbe, Icon-Hintergrund) | `#14A74B` |
-| Logo-Grün hell (Verlauf) | `#1CB55A` |
-| Logo-Grün dunkel | `#0E7A36` |
+| Logo-Grün (Icon-Hintergrund) | `#16A64B` |
+| Akzentgrün hell | `#1CB55A` |
+| Akzentgrün dunkel | `#0E7A36` |
 | Wortmarke | „Transcriber“, Satzschrift, Halbfett |
 | Icon | Mikrofon + Sprechblase, weiß freigestellt auf Grün (`docs/Logo.png`) |
 
-Der Verlauf des Logos wird nur im Icon und in der Onboarding-Illustration verwendet,
-nicht als Flächenfarbe in der App.
+Das Logo ist einfarbig grün. Die Akzenttöne werden nur für Verläufe in UI-Elementen wie
+der Waveform verwendet, nicht als Flächenfarbe in der App.
 
 ## Farbschemata
 

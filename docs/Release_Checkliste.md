@@ -81,6 +81,7 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 
 - [ ] Echte WhatsApp-Sprachnachricht (OGG/Opus, mehrere Minuten) teilen → Dauer, Fortschritt, Transkriptqualität.
 - [ ] Einstellungen → **Bildschirmfotos verhindern**: Screenshot über die Systemfunktion → schwarzes Bild; wieder ausschalten → Screenshot funktioniert.
+- [ ] App-Icon auf Homescreen und in den App-Infos prüfen: neues Logo, runde Maske schneidet die Sprechblase nicht an.
 - [ ] Modellwechsel Small ↔ Base auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).
 - [ ] Einstellungen bei 200 % Systemschrift und ca. 320 dp Breite prüfen → Aufbewahrungszeilen bleiben lesbar und brechen nicht mitten im Wort um.
 - [ ] App-Sprache/Theme umschalten und App neu starten → Einstellungen bleiben erhalten.
