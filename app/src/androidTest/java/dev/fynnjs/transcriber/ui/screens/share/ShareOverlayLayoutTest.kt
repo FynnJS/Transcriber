@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -150,6 +152,17 @@ class ShareOverlayLayoutTest {
     @Test
     fun keepsButtonLabelsUnclippedAtLargeFontScale() {
         showOverlay(widthDp = 240, fontScale = 2f)
+        val closeLabel = context().getString(R.string.action_close)
+        // The sheet scrolls at this font scale; only the visible part of a node carries bounds,
+        // so scroll the sheet to its end before measuring the bottom buttons.
+        val sheet = composeRule
+            .onNode(hasScrollAction() and hasAnyDescendant(hasText(closeLabel)))
+            .fetchSemanticsNode()
+        val scrollBy = sheet.config[SemanticsActions.ScrollBy].action
+        repeat(4) {
+            scrollBy?.invoke(0f, 2_000f)
+            composeRule.waitForIdle()
+        }
         listOf(R.string.share_open_in_app, R.string.action_close).forEach { resId ->
             val label = context().getString(resId)
             val button = composeRule.onNode(hasText(label) and hasClickAction())
@@ -157,7 +170,7 @@ class ShareOverlayLayoutTest {
             val text = composeRule.onAllNodesWithText(label, useUnmergedTree = true)
                 .fetchSemanticsNodes().single().boundsInRoot
             assertTrue(
-                "button label '$label' is clipped",
+                "button label '$label' is clipped: text=$text button=$button",
                 text.top > button.top && text.bottom < button.bottom,
             )
         }
