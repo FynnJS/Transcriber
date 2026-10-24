@@ -9,6 +9,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +29,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,11 +54,13 @@ import dev.fynnjs.transcriber.domain.model.TranscriptionStatus
 import dev.fynnjs.transcriber.ui.components.AudioPlayer
 import dev.fynnjs.transcriber.ui.components.BottomSheetContainer
 import dev.fynnjs.transcriber.ui.components.ErrorState
+import dev.fynnjs.transcriber.ui.components.HeadingText
 import dev.fynnjs.transcriber.ui.components.LabelChip
 import dev.fynnjs.transcriber.ui.components.LabelEditorDialog
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.StatusChip
+import dev.fynnjs.transcriber.ui.components.TranscriptionProgressBar
 import dev.fynnjs.transcriber.ui.theme.LocalExtendedColors
 import dev.fynnjs.transcriber.ui.util.formatDuration
 import kotlinx.coroutines.launch
@@ -101,58 +104,63 @@ fun ShareOverlayScreen(
                     onClick = {},
                 ),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                // Scrolls when the content exceeds the screen, e.g. on small displays with a
+                // large font scale; short content keeps the sheet compact.
+                Column(
+                    Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.share_title),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        val subtitle = when (uiState) {
-                            is ShareUiState.Ready -> uiState.entry.sourceFileName
-                            is ShareUiState.Failed -> stringResource(R.string.share_error_title)
-                            ShareUiState.Preparing -> stringResource(R.string.share_preparing)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            HeadingText(text = stringResource(R.string.share_title))
+                            val subtitle = when (uiState) {
+                                is ShareUiState.Ready -> uiState.entry.sourceFileName
+                                is ShareUiState.Failed -> stringResource(R.string.share_error_title)
+                                ShareUiState.Preparing -> stringResource(R.string.share_preparing)
+                            }
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                        IconButton(onClick = onClose) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.action_close),
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    when (uiState) {
+                        ShareUiState.Preparing -> PreparingContent()
+                        is ShareUiState.Failed -> FailedContent(
+                            error = uiState.error,
+                            onClose = onClose,
+                            onOpenApp = onOpenApp,
+                        )
+
+                        is ShareUiState.Ready -> ReadyContent(
+                            state = uiState,
+                            onEditLabel = { showLabelDialog = true },
+                            onRetry = onRetry,
+                            onClose = onClose,
+                            onOpenApp = onOpenApp,
+                            copiedText = copiedText,
+                            shareChooser = shareChooser,
                         )
                     }
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.action_close),
-                        )
-                    }
+
+                    Spacer(Modifier.height(20.dp))
                 }
-
-                Spacer(Modifier.height(8.dp))
-
-                when (uiState) {
-                    ShareUiState.Preparing -> PreparingContent()
-                    is ShareUiState.Failed -> FailedContent(
-                        error = uiState.error,
-                        onClose = onClose,
-                        onOpenApp = onOpenApp,
-                    )
-
-                    is ShareUiState.Ready -> ReadyContent(
-                        state = uiState,
-                        onEditLabel = { showLabelDialog = true },
-                        onRetry = onRetry,
-                        onClose = onClose,
-                        onOpenApp = onOpenApp,
-                        copiedText = copiedText,
-                        shareChooser = shareChooser,
-                    )
-                }
-
-                Spacer(Modifier.height(20.dp))
             }
         }
     }
@@ -220,6 +228,7 @@ private fun FailedContent(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReadyContent(
     state: ShareUiState.Ready,
@@ -231,9 +240,18 @@ private fun ReadyContent(
     shareChooser: String,
 ) {
     val entry = state.entry
+    val shownTranscript = entry.displayedTranscript
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     var copyCount by remember { mutableIntStateOf(0) }
+    val transcriptScroll = rememberScrollState()
+
+    // Keep the newest words visible while the live preview grows.
+    LaunchedEffect(entry.partialTranscript) {
+        if (entry.isLivePreview && transcriptScroll.maxValue > 0) {
+            transcriptScroll.animateScrollTo(transcriptScroll.maxValue)
+        }
+    }
 
     LaunchedEffect(copyCount) {
         if (copyCount > 0) {
@@ -285,17 +303,24 @@ private fun ReadyContent(
             entry.status == TranscriptionStatus.TRANSCRIBING
         ) {
             Spacer(Modifier.height(12.dp))
-            LinearProgressIndicator(
-                progress = { entry.progress / 100f },
+            TranscriptionProgressBar(
+                progress = entry.progress,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = if (entry.status == TranscriptionStatus.QUEUED) {
-                    stringResource(R.string.status_queued)
-                } else {
-                    stringResource(R.string.status_transcribing)
-                } + " · ${entry.progress} %",
+                text = when {
+                    entry.status == TranscriptionStatus.QUEUED ->
+                        stringResource(R.string.status_queued)
+
+                    entry.progress > 0 -> stringResource(
+                        R.string.status_progress,
+                        stringResource(R.string.status_transcribing),
+                        entry.progress,
+                    )
+
+                    else -> stringResource(R.string.status_transcribing)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -334,7 +359,7 @@ private fun ReadyContent(
             )
         }
 
-        if (entry.status == TranscriptionStatus.DONE) {
+        if (entry.status == TranscriptionStatus.DONE || !shownTranscript.isNullOrBlank()) {
             Spacer(Modifier.height(16.dp))
             Surface(
                 modifier = Modifier
@@ -343,13 +368,13 @@ private fun ReadyContent(
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
-                if (entry.hasTranscript) {
+                if (!shownTranscript.isNullOrBlank()) {
                     SelectionContainer {
                         Text(
-                            text = entry.transcript.orEmpty(),
+                            text = shownTranscript,
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
-                                .verticalScroll(rememberScrollState())
+                                .verticalScroll(transcriptScroll)
                                 .padding(12.dp),
                         )
                     }
@@ -362,26 +387,36 @@ private fun ReadyContent(
                     )
                 }
             }
+            if (entry.isLivePreview) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.transcript_live_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         Spacer(Modifier.height(12.dp))
-        Row(
+        // The label sits on its own line so a long label stays readable on narrow screens.
+        if (entry.label.isNullOrBlank()) {
+            LabelChip(
+                label = stringResource(R.string.detail_label_add),
+                onClick = onEditLabel,
+            )
+        } else {
+            LabelChip(
+                label = entry.label.orEmpty(),
+                onClick = onEditLabel,
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (entry.label.isNullOrBlank()) {
-                LabelChip(
-                    label = stringResource(R.string.detail_label_add),
-                    onClick = onEditLabel,
-                )
-            } else {
-                LabelChip(
-                    label = entry.label.orEmpty(),
-                    onClick = onEditLabel,
-                )
-            }
-            Spacer(Modifier.weight(1f))
             if (entry.hasTranscript) {
                 IconButton(onClick = {
                     clipboard.setText(AnnotatedString(entry.transcript.orEmpty()))

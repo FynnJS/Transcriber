@@ -1,8 +1,7 @@
 package dev.fynnjs.transcriber.ui.screens.onboarding
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,13 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -28,9 +27,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.domain.model.ModelError
 import dev.fynnjs.transcriber.domain.model.ModelState
+import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.util.formatSizeMb
 
@@ -47,7 +53,14 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val baseState by viewModel.baseState.collectAsStateWithLifecycle()
     val model = viewModel.model
+    var downloadBase by rememberSaveable { mutableStateOf(false) }
+    val selectedBytes = if (downloadBase) {
+        model.approxBytes + WhisperModel.BASE.approxBytes
+    } else {
+        model.approxBytes
+    }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         Column(
@@ -59,19 +72,13 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(48.dp))
-            Box(
+            Image(
+                painter = painterResource(R.drawable.ic_brand_logo),
+                contentDescription = null,
                 modifier = Modifier
-                    .size(88.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Mic,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(40.dp),
-                )
-            }
+                    .size(104.dp)
+                    .clip(MaterialTheme.shapes.extraLarge),
+            )
             Spacer(Modifier.height(20.dp))
             Text(
                 text = stringResource(R.string.onboarding_title),
@@ -116,7 +123,7 @@ fun OnboardingScreen(
                             R.string.onboarding_download_text,
                             stringResource(
                                 R.string.settings_model_size,
-                                formatSizeMb(model.approxBytes),
+                                formatSizeMb(selectedBytes),
                             ),
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -129,6 +136,7 @@ fun OnboardingScreen(
                             LinearProgressIndicator(
                                 progress = { current.progress / 100f },
                                 modifier = Modifier.fillMaxWidth(),
+                                drawStopIndicator = {},
                             )
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -153,6 +161,9 @@ fun OnboardingScreen(
                                 onClick = onFinished,
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            if (downloadBase && baseState !is ModelState.Ready) {
+                                BaseModelStatus(baseState)
+                            }
                         }
 
                         else -> {
@@ -172,15 +183,50 @@ fun OnboardingScreen(
                                 )
                                 Spacer(Modifier.height(8.dp))
                             }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .toggleable(
+                                        value = downloadBase,
+                                        role = Role.Checkbox,
+                                        onValueChange = { downloadBase = it },
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(checked = downloadBase, onCheckedChange = null)
+                                Spacer(Modifier.size(8.dp))
+                                Column {
+                                    Text(
+                                        text = stringResource(
+                                            R.string.onboarding_base_option,
+                                            stringResource(
+                                                R.string.settings_model_size,
+                                                formatSizeMb(WhisperModel.BASE.approxBytes),
+                                            ),
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.settings_model_base_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(12.dp))
                             PrimaryButton(
                                 text = stringResource(
-                                    R.string.onboarding_download_button,
+                                    if (downloadBase) {
+                                        R.string.onboarding_download_button_multi
+                                    } else {
+                                        R.string.onboarding_download_button
+                                    },
                                     stringResource(
                                         R.string.settings_model_size,
-                                        formatSizeMb(model.approxBytes),
+                                        formatSizeMb(selectedBytes),
                                     ),
                                 ),
-                                onClick = viewModel::download,
+                                onClick = { viewModel.download(includeBase = downloadBase) },
                                 modifier = Modifier.fillMaxWidth(),
                                 icon = Icons.Outlined.Download,
                             )
@@ -196,6 +242,36 @@ fun OnboardingScreen(
             }
             Spacer(Modifier.height(32.dp))
         }
+    }
+}
+
+@Composable
+private fun BaseModelStatus(state: ModelState) {
+    when (state) {
+        is ModelState.Downloading -> {
+            Spacer(Modifier.height(12.dp))
+            LinearProgressIndicator(
+                progress = { state.progress / 100f },
+                modifier = Modifier.fillMaxWidth(),
+                drawStopIndicator = {},
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = stringResource(R.string.onboarding_base_downloading, state.progress),
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+
+        is ModelState.Failed -> {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.onboarding_base_failed),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+
+        else -> Unit
     }
 }
 

@@ -6,7 +6,6 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dev.fynnjs.transcriber.domain.model.ModelError
@@ -46,7 +45,10 @@ class ModelRepositoryImpl @Inject constructor(
     override fun state(model: WhisperModel): ModelState =
         _states.value[model] ?: ModelState.NotDownloaded
 
-    override fun isReady(model: WhisperModel): Boolean = state(model).isReady
+    // The file on disk is the only reliable source: WorkManager keeps records of replaced
+    // downloads, so a cached failure must never make a present model look unavailable (the
+    // start destination would otherwise fall back to onboarding).
+    override fun isReady(model: WhisperModel): Boolean = storage.isPresent(model)
 
     override fun modelFile(model: WhisperModel): File = storage.file(model)
 
@@ -87,31 +89,8 @@ class ModelRepositoryImpl @Inject constructor(
         scope.launch {
             workManager.getWorkInfosForUniqueWorkFlow(ModelDownloadWorker.workName(model))
                 .collect { infos ->
-                    val info = infos.firstOrNull() ?: return@collect
-                    when (info.state) {
-                        WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> {
-                            val progress = info.progress.getInt(ModelDownloadWorker.KEY_PROGRESS, 0)
-                            setState(model, ModelState.Downloading(progress))
-                        }
-
-                        WorkInfo.State.RUNNING -> {
-                            val progress = info.progress.getInt(ModelDownloadWorker.KEY_PROGRESS, 0)
-                            setState(model, ModelState.Downloading(progress))
-                        }
-
-                        WorkInfo.State.SUCCEEDED -> {
-                            setState(model, diskState(model))
-                        }
-
-                        WorkInfo.State.FAILED -> {
-                            val error = info.outputData.getString(ModelDownloadWorker.KEY_ERROR)
-                            val reason = runCatching { ModelError.valueOf(error ?: "") }
-                                .getOrDefault(ModelError.DOWNLOAD_FAILED)
-                            setState(model, ModelState.Failed(reason))
-                        }
-
-                        WorkInfo.State.CANCELLED -> setState(model, diskState(model))
-                    }
+                    val state = resolveModelState(infos, diskState(model)) ?: return@collect
+                    setState(model, state)
                 }
         }
     }

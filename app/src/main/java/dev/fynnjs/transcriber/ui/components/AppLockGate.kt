@@ -16,11 +16,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,6 +33,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.ui.theme.TranscriberTheme
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,21 +44,39 @@ private const val AUTHENTICATORS =
     BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
 
 /**
- * Optional biometric lock shown before the history. When no device credential is configured
- * the app stays usable and explains why the lock cannot be enabled.
+ * Optional biometric lock shown before the history. It reappears whenever the app comes back
+ * from the background. When no device credential is configured the app stays usable and
+ * explains why the lock cannot be enabled.
  */
 @Composable
 fun AppLockGate(
     enabled: Boolean,
     content: @Composable () -> Unit,
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var unlocked by rememberSaveable { mutableStateOf(!enabled) }
+    val lockEnabled by rememberUpdatedState(enabled)
+
+    // Lock again as soon as the app leaves the foreground; configuration changes keep the session.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP && lockEnabled) {
+                val activity = context.findFragmentActivity()
+                if (activity?.isChangingConfigurations != true) {
+                    unlocked = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     if (!enabled || unlocked) {
         content()
         return
     }
 
-    val context = LocalContext.current
     val activity = context.findFragmentActivity()
     var error by remember { mutableStateOf<String?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
@@ -71,8 +94,10 @@ fun AppLockGate(
             error = unavailableText
             return@LaunchedEffect
         }
-        promptForUnlock(
+        promptForAuthentication(
             activity = activity!!,
+            title = activity.getString(R.string.lock_title),
+            subtitle = activity.getString(R.string.lock_subtitle),
             onSuccess = { unlocked = true },
             onError = { error = failedText },
         )
@@ -136,8 +161,14 @@ fun AppLockGate(
     }
 }
 
-private fun promptForUnlock(
+/**
+ * Shows the device credential/biometric prompt. Shared by the lock screen and the settings
+ * switch, which requires one confirmation before the lock is enabled.
+ */
+internal fun promptForAuthentication(
     activity: FragmentActivity,
+    title: String,
+    subtitle: String,
     onSuccess: () -> Unit,
     onError: () -> Unit,
 ) {
@@ -155,14 +186,14 @@ private fun promptForUnlock(
         },
     )
     val info = BiometricPrompt.PromptInfo.Builder()
-        .setTitle(activity.getString(R.string.lock_title))
-        .setSubtitle(activity.getString(R.string.lock_subtitle))
+        .setTitle(title)
+        .setSubtitle(subtitle)
         .setAllowedAuthenticators(AUTHENTICATORS)
         .build()
     prompt.authenticate(info)
 }
 
-private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
+internal tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
     is FragmentActivity -> this
     is ContextWrapper -> baseContext.findFragmentActivity()
     else -> null

@@ -2,18 +2,32 @@
 
 Android-App, die WhatsApp-Sprachnachrichten über die Teilen-Funktion entgegennimmt und
 **vollständig offline** auf dem Gerät transkribiert (whisper.cpp). Keine Cloud, kein
-Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
+Tracking, kein Netzwerk außer dem einmaligen Modelldownload und der Update-Prüfung über
+GitHub.
 
 ## Funktionen
 
 - Teilen-Ziel für `audio/*`: schlankes Bottom-Sheet-Overlay, eine Nachricht pro Vorgang
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
-  Schnell-Option; Spracherkennung automatisch oder Deutsch)
+  Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
+  Deutsch)
+- Live-Vorschau: bei längeren Nachrichten wächst das Transkript schon während der
+  Transkription mit (überlappende 10-Sekunden-Fenster); der fertige Text entsteht aus
+  denselben Fenstern, springt am Ende nicht um und bereinigt doppelte Wörter und falsche
+  Satzzeichen an den Fenstergrenzen
+- Modell je Nachricht in der Detailansicht wählbar – ein fehlendes Modell wird dort direkt
+  heruntergeladen, danach startet die Transkription von selbst
 - Inkognito-Player für die lokale Audiodatei (WhatsApp erhält keine Wiedergabe-Info)
 - Verlauf mit Volltextsuche (FTS), Labels, Kopieren, Teilen, Löschen
 - Aufbewahrungsfristen für Audio und Transkript, tägliche Bereinigung
+- Benachrichtigungen für Download- und Transkriptionsfortschritt; ein eigener
+  Onboarding-Schritt erklärt vor der Systemabfrage, wofür sie gebraucht werden und dass die
+  App auch ohne sie funktioniert
+- In-App-Update über GitHub: stiller Check beim Start (höchstens täglich), Dialog mit
+  Versionshinweis, Download in der App und Übergabe an den Android-Installer
 - Dunkles Theme als Standard, helles Theme optional
-- Optionale App-Sperre (Biometrie) und Bildschirmfoto-Schutz
+- Optionale App-Sperre (Biometrie; Ein- und Ausschalten bestätigen, nach jeder Rückkehr aus
+  dem Hintergrund erneut entsperren) und Bildschirmfoto-Schutz
 
 ## Tech-Stack
 
@@ -37,25 +51,30 @@ app/src/main/cpp/ CMake + JNI-Brücke zu third_party/whisper.cpp
 
 Ablauf: `ShareReceiverActivity` kopiert den Stream in den app-privaten Speicher, berechnet
 den SHA-256 (Duplikaterkennung), legt einen `HistoryEntry` an und startet den
-`TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es an
-whisper.cpp. Fortschritt und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
+`TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es in
+überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang). Fortschritt,
+Live-Vorschau und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
 
 Details zu Farben, Typografie und Komponenten: [docs/Design_System.md](docs/Design_System.md).
 
 ## Build
 
-Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22.
+Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22. Gradle 9.8.0 kommt
+über den Wrapper, muss also nicht separat installiert werden.
 
 ```bash
 git submodule update --init --recursive
 ./gradlew :app:assembleDebug          # Debug (arm64-v8a + x86_64)
 ./gradlew :app:assembleRelease        # Release (arm64-v8a, R8)
+./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release-Workflow
 ./gradlew test                        # Unit-Tests
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
 
-`local.properties` mit `sdk.dir` wird nicht eingecheckt. Der Release-Keystore liegt
-ausschließlich lokal bzw. in sicheren CI-Secrets.
+`local.properties` mit `sdk.dir` wird nicht eingecheckt. Auch
+`gradle/gradle-daemon-jvm.properties` bleibt lokal (ignoriert); der Gradle-Daemon nutzt die
+installierte JDK ≥ 17. Der Release-Keystore liegt ausschließlich lokal bzw. in sicheren
+CI-Secrets.
 
 ## Modelle
 
@@ -67,7 +86,38 @@ whisper.cpp-Repository (Hugging Face) geladen und per SHA-256 geprüft:
 | base | `ggml-base-q5_1.bin` | 59.707.625 B | `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898` |
 | small | `ggml-small-q5_1.bin` | 190.085.487 B | `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb` |
 
+Vor jedem Download prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen
+Fehler; gleichzeitig gestartete Downloads (etwa *small* und *base* im Onboarding) legen den
+Modellordner kollisionsfrei an.
+
+Ob ein Modell bereit ist, entscheidet die Datei auf dem Gerät – nicht der letzte
+WorkManager-Eintrag. WorkManager behält die Einträge abgelöster Downloads, deshalb werden alte
+Fehlschläge ignoriert, sobald eine spätere Version des Downloads erfolgreich war. Das Onboarding
+erscheint nur noch, wenn **kein** Modell bereit ist; ein gelöschtes Standardmodell schickt
+bestehende Nutzer nicht mehr zurück auf den Einführungsbildschirm.
+
 Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
+
+## Releases und Updates
+
+Ein Push des Tags `vX.Y.Z` startet `.github/workflows/release.yml`: Der Workflow prüft das
+Tag-Format, läuft die Unit-Tests, baut die signierte Release-APK und veröffentlicht sie als
+Asset des GitHub-Releases samt generierten Release-Notes. Der Tag bestimmt die Version
+(`v1.2.3` → `versionName` 1.2.3, `versionCode` 10203); lokal setzt `-PversionName=1.2.3`
+dieselbe Version.
+
+Der Workflow braucht die Repository-Secrets `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und `RELEASE_KEY_PASSWORD`. Fehlt eines, bricht
+der Job ab, statt eine unsignierte APK zu veröffentlichen; die Signing-Dateien werden im
+Anschluss wieder gelöscht.
+
+Die App prüft beim Start höchstens einmal pro Tag
+`api.github.com/repos/FynnJS/Transcriber/releases/latest` und bietet eine neuere Version als
+Dialog an. Nach Bestätigung lädt sie die APK in den Cache, prüft Paketname und Signatur gegen
+die installierte App und übergibt sie an den Android-Installer. „Später“ blendet die
+tägliche Erinnerung für diese Version aus; die manuelle Suche in den Einstellungen ignoriert
+das Tagesintervall und bietet sie weiterhin an. Updates greifen nur in der Release-Variante,
+weil Debug-Builds eine eigene Application-ID haben.
 
 ## Branch-Workflow
 
@@ -76,9 +126,24 @@ Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 - Release: PR von `develop` nach `main` plus Tag `vX.Y.Z`.
 - Commit-Nachrichten: Conventional Commits, **auf Englisch**, Stichpunkte im Body,
   z. B. `feat(settings): Add audio retention selection`.
+- Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und
+  ihre Funktionalität vollständig bestätigen.
+- Nur als FynnJS, ohne Co-Author-Zeilen oder „Generated with …“-Fußzeilen.
+- Änderungen sinnvoll gesplittet committen: ein Commit pro eigenständiger Änderung.
+
+## Dokumentation
+
+`README.md`, `AGENTS.md` und alle Dateien in `docs/` beschreiben immer den aktuellen Stand
+von `develop` und werden bei jeder Änderung im selben Commit mitgepflegt. Die
+Doku-Pflege ist Pflicht, nicht optional.
 
 ## Datenschutz
 
 Alle Audiodaten und Transkripte bleiben im app-privaten Speicher. `INTERNET` wird nur für
-den Modelldownload verwendet. Keine Analyse-, Werbe- oder Crash-SDKs. `allowBackup` ist
-deaktiviert, Datenbank und Audioordner sind von Backup und Geräteübertragung ausgeschlossen.
+den Modelldownload und den Update-Check samt APK-Download von den eigenen GitHub-Releases
+verwendet. Keine Analyse-, Werbe- oder Crash-SDKs. `allowBackup` ist deaktiviert, Datenbank
+und Audioordner sind von Backup und Geräteübertragung ausgeschlossen.
+
+Die optionale App-Sperre schützt ausschließlich den Verlauf samt Detailansicht und
+Einstellungen. Das Teilen-Overlay (`ShareReceiverActivity`) bleibt bewusst ungeschützt,
+damit eine geteilte Nachricht ohne zusätzliche Hürde transkribiert werden kann.

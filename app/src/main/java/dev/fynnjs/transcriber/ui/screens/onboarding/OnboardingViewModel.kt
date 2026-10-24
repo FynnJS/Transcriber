@@ -23,7 +23,13 @@ class OnboardingViewModel @Inject constructor(
         .map { it[model] ?: ModelState.NotDownloaded }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ModelState.NotDownloaded)
 
-    fun download() {
+    /** State of the optional base model, downloaded in addition to the default model. */
+    val baseState: StateFlow<ModelState> = modelRepository.states
+        .map { it[WhisperModel.BASE] ?: ModelState.NotDownloaded }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ModelState.NotDownloaded)
+
+    fun download(includeBase: Boolean) {
         modelRepository.download(model)
+        if (includeBase) modelRepository.download(WhisperModel.BASE)
     }
 }

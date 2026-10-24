@@ -9,14 +9,24 @@ eine bewusste Alternative.
 
 | Rolle | Wert |
 | --- | --- |
-| Logo-Grün (Primärfarbe, Icon-Hintergrund) | `#14A74B` |
-| Logo-Grün hell (Verlauf) | `#1CB55A` |
-| Logo-Grün dunkel | `#0E7A36` |
+| Logo-Grün (Icon-Hintergrund) | `#16A64B` |
+| Akzentgrün hell | `#1CB55A` |
+| Akzentgrün dunkel | `#0E7A36` |
 | Wortmarke | „Transcriber“, Satzschrift, Halbfett |
 | Icon | Mikrofon + Sprechblase, weiß freigestellt auf Grün (`docs/Logo.png`) |
 
-Der Verlauf des Logos wird nur im Icon und in der Onboarding-Illustration verwendet,
-nicht als Flächenfarbe in der App.
+Das Logo ist einfarbig grün. Die Akzenttöne werden nur für Verläufe in UI-Elementen wie
+der Waveform verwendet, nicht als Flächenfarbe in der App.
+
+Das Onboarding zeigt das vollständige Logo als 104-dp-Kachel mit `extraLarge`-Radius
+(32 dp) über dem Titel; die Kachel ersetzt dort die frühere Icon-Illustration.
+
+Der Benachrichtigungs-Onboarding-Schritt nutzt dieselbe Abstandsfolge, aber statt der
+Logo-Kachel ein rundes Badge in `primaryContainer` (104 dp, 44-dp-Icon). Darunter stehen
+Titel (`headlineMedium`, damit das lange Einzelwort auch auf schmalen Geräten einzeilig
+bleibt), Untertitel (`bodyLarge`, `onSurfaceVariant`) und drei Erklärzeilen im Muster
+Icon + `titleSmall` + `bodySmall`; die Aktionen sind ein gefüllter Primär- und ein
+sekundärer Outlined-Button über die volle Breite.
 
 ## Farbschemata
 
@@ -82,6 +92,10 @@ Systemschrift (Roboto / SansSerif), keine zusätzlichen Font-Dateien.
 Transkripte nutzen `bodyLarge` mit `lineHeight 24sp`; Vorschauen werden auf zwei bis drei
 Zeilen gekürzt. Zahlen in Dauerangaben stehen in `labelMedium` mit tabellarischen Ziffern.
 
+Überschriften laufen über `HeadingText`: Passt das längste Wort nicht in die verfügbare
+Breite (sehr schmale Displays, große Systemschrift), sinkt die Schriftgröße in 1-sp-Schritten
+bis auf 10 sp, statt das Wort mitten im Wort umzubrechen.
+
 ## Abstände
 
 4-dp-Raster:
@@ -118,14 +132,43 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
 - **Status-Chip**: pillenförmig, `labelSmall`, Punkt + Text; Farben wie Statusfarben,
   Hintergrund = Statusfarbe mit 16 % Alpha.
 - **Label-Chip**: `secondaryContainer`, `labelMedium`, führendes Tag-Icon; editierbar.
+  Lange Labels werden gekürzt, das Entfernen-Icon bleibt dabei sichtbar.
+- **Detail-Aktionen**: Label-Chip und Label-Aktionen stehen in einer `FlowRow`; reicht die
+  Breite nicht, rücken die Aktionen in die nächste Zeile, statt aus dem Bild zu scrollen.
+- **Modellauswahl (Detail)**: Ein sekundärer Dropdown-Button mit Chevron listet beide Modelle
+  mit Größe und Zustand (Bereit, Nicht geladen, Wird geladen … Prozent, Fehler), wie in den
+  Einstellungen. Die Auswahl gilt nur für diesen Eintrag. Ein nicht geladenes Modell wird
+  sofort heruntergeladen; unter der Auswahl erscheinen Fortschrittsbalken und Prozentwert,
+  und sobald das Modell bereit ist, startet die Transkription automatisch. Nach einem
+  fehlgeschlagenen Download bietet die Auswahl „Laden“ erneut an. Die Auswahl steht unter
+  der Fehlerkarte des Eintrags, also dort, wo eine Transkription erneut angestoßen wird.
+- **Detail-Transkript**: Der Bereich zeigt das Transkript, sobald eines vorliegt. Der leere
+  Zustand („Kein Text erkannt“) gehört ausschließlich zu `DONE`; solange ein Eintrag
+  `QUEUED` oder `TRANSCRIBING` ist, steht dort ein Hinweis auf das ausstehende Transkript,
+  und bei `FAILED` ohne Text erklärt allein der Fehlerzustand den Eintrag. Ein erneuter
+  Versuch zeigt damit nie „Kein Text erkannt“, während die Transkription noch läuft.
+  Während `TRANSCRIBING` wächst das Transkript als Live-Vorschau mit; ein Hinweis darunter
+  („Live-Vorschau – der Text wird noch vervollständigt.“) grenzt ihn vom fertigen Text ab.
+  Eine ältere Fassung bleibt sichtbar, bis das erste Fenster erkannt ist, danach gewinnt
+  die Vorschau. Kopieren und Teilen beziehen sich weiterhin nur auf den fertigen Text.
 - **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
-  Textbutton für tertiäre Aktionen. Höhe 48 dp, Radius `full`.
+  Textbutton für tertiäre Aktionen. Mindesthöhe 48 dp, Radius `full`; bei großen
+  Schriftgrößen wachsen sie mit dem Text, statt ihn abzuschneiden.
 - **Bottom-Sheet-Container**: `surfaceContainerLow`, obere Radien 24 dp, Griff 32 × 4 dp,
   Innenabstand 16 dp, `navigationBarsPadding`.
+- **Teilen-Overlay**: Label-Chip in eigener Zeile, darunter Kopieren/Teilen und
+  „In der App öffnen“ als `FlowRow` (rechtsbündig). Auf schmalen Displays bricht die
+  Aktionszeile um, statt den Chip zu quetschen; „Schließen“ bleibt voll breit. Passt der
+  Inhalt nicht auf den Bildschirm (kleine Displays, große Schrift), scrollt der Inhalt
+  unter dem Griff; der Griff bleibt oben stehen. Das Transkript-Feld erscheint schon
+  während der Transkription, sobald die Live-Vorschau Text enthält; Fortschritt und
+  Live-Hinweis stehen darüber bzw. darunter.
 - **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
   Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
 - **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion
-  (Erneut versuchen / Zum Download).
+  (Erneut versuchen / Zum Download). „Erneut versuchen“ meldet nur dann „Transkription neu
+  gestartet“, wenn das Modell bereit ist; fehlt oder lädt es noch, erklärt die Rückmeldung
+  den fehlenden Download, statt einen Start zu behaupten.
 
 ## Bewegung
 

@@ -8,14 +8,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.fynnjs.transcriber.data.audio.AudioFileStore
 import dev.fynnjs.transcriber.domain.model.HistoryEntry
+import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.TranscriptionStatus
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.domain.repository.HistoryRepository
 import dev.fynnjs.transcriber.domain.repository.ModelRepository
 import dev.fynnjs.transcriber.service.TranscriptionService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,8 +45,12 @@ class DetailViewModel @Inject constructor(
         .map { audioFileStore.resolve(it?.audioPath) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val modelStates: StateFlow<Map<WhisperModel, ModelState>> = modelRepository.states
+
     private val _recentLabels = MutableStateFlow<List<String>>(emptyList())
     val recentLabels: StateFlow<List<String>> = _recentLabels
+
+    private var autoStartJob: Job? = null
 
     init {
         refreshLabels()
@@ -56,14 +63,43 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun retry() {
+    /**
+     * Restarts the transcription of [entry].
+     *
+     * Returns false when the model is not downloaded yet; nothing is queued in that case, so
+     * the caller must not report a started transcription.
+     */
+    fun retry(entry: HistoryEntry): Boolean {
+        val model = WhisperModel.fromId(entry.modelUsed)
+        if (!modelRepository.isReady(model)) return false
+        viewModelScope.launch { startTranscription(entry.id) }
+        return true
+    }
+
+    /**
+     * Uses [model] for the next transcription of this entry.
+     *
+     * A model that is not on disk yet is downloaded right away; once it is ready the
+     * transcription starts on its own, so the user does not have to trigger it again.
+     */
+    fun selectModel(model: WhisperModel) {
         viewModelScope.launch {
-            val current = entry.value ?: return@launch
-            val model = WhisperModel.fromId(current.modelUsed)
-            if (!modelRepository.isReady(model)) return@launch
-            historyRepository.updateStatus(current.id, TranscriptionStatus.QUEUED)
-            TranscriptionService.enqueue(context, current.id)
+            historyRepository.updateModelUsed(entryId, model)
+            autoStartJob?.cancel()
+            if (modelRepository.isReady(model)) return@launch
+            autoStartJob = launch {
+                modelRepository.download(model)
+                modelRepository.states.first { states -> states[model]?.isReady == true }
+                if (historyRepository.get(entryId)?.status == TranscriptionStatus.FAILED) {
+                    startTranscription(entryId)
+                }
+            }
         }
+    }
+
+    private suspend fun startTranscription(id: Long) {
+        historyRepository.updateStatus(id, TranscriptionStatus.QUEUED)
+        TranscriptionService.enqueue(context, id)
     }
 
     fun delete(onDeleted: () -> Unit) {

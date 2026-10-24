@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [HistoryEntryEntity::class, HistoryEntryFts::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class TranscriberDatabase : RoomDatabase() {

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.biometric.BiometricManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -54,17 +56,20 @@ import dev.fynnjs.transcriber.BuildConfig
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.domain.model.AppSettings
 import dev.fynnjs.transcriber.domain.model.AudioRetention
-import dev.fynnjs.transcriber.domain.model.ModelError
 import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.ThemeMode
 import dev.fynnjs.transcriber.domain.model.TranscriptionLanguage
 import dev.fynnjs.transcriber.domain.model.TranscriptRetention
+import dev.fynnjs.transcriber.domain.model.UpdateState
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.components.InfoRow
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.SectionHeader
+import dev.fynnjs.transcriber.ui.components.modelStateLabel
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
+import dev.fynnjs.transcriber.ui.components.findFragmentActivity
+import dev.fynnjs.transcriber.ui.components.promptForAuthentication
 import dev.fynnjs.transcriber.ui.util.formatSizeMb
 import kotlinx.coroutines.launch
 
@@ -80,6 +85,7 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val modelStates by viewModel.modelStates.collectAsStateWithLifecycle()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
+    val updateState by viewModel.updateState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -95,6 +101,29 @@ fun SettingsScreen(
     val audioDeletedMessage = stringResource(R.string.settings_audio_deleted_now)
     val allDeletedMessage = stringResource(R.string.settings_data_deleted)
     val modelDeletedMessage = stringResource(R.string.settings_model_deleted)
+    val appLockEnableTitle = stringResource(R.string.settings_app_lock_enable_title)
+    val appLockEnableSubtitle = stringResource(R.string.settings_app_lock_enable_subtitle)
+    val appLockDisableTitle = stringResource(R.string.settings_app_lock_disable_title)
+    val appLockDisableSubtitle = stringResource(R.string.settings_app_lock_disable_subtitle)
+    val appLockConfirmFailedMessage = stringResource(R.string.settings_app_lock_confirm_failed)
+
+    // Enabling and disabling the lock both require one device confirmation.
+    val confirmAppLockChange: (Boolean) -> Unit = { enable ->
+        val activity = context.findFragmentActivity()
+        if (activity == null) {
+            scope.launch { snackbarHostState.showSnackbar(appLockConfirmFailedMessage) }
+        } else {
+            promptForAuthentication(
+                activity = activity,
+                title = if (enable) appLockEnableTitle else appLockDisableTitle,
+                subtitle = if (enable) appLockEnableSubtitle else appLockDisableSubtitle,
+                onSuccess = { viewModel.setAppLock(enable) },
+                onError = {
+                    scope.launch { snackbarHostState.showSnackbar(appLockConfirmFailedMessage) }
+                },
+            )
+        }
+    }
 
     if (showDeleteAllDialog) {
         AlertDialog(
@@ -275,7 +304,7 @@ fun SettingsScreen(
                     },
                     checked = settings.appLock,
                     enabled = biometricAvailable,
-                    onCheckedChange = viewModel::setAppLock,
+                    onCheckedChange = confirmAppLockChange,
                 )
                 SwitchRow(
                     icon = { Icon(Icons.Outlined.Security, null, Modifier.size(20.dp)) },
@@ -328,6 +357,20 @@ fun SettingsScreen(
                 InfoRow(
                     icon = Icons.Outlined.Info,
                     title = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
+                )
+                InfoRow(
+                    icon = Icons.Outlined.SystemUpdate,
+                    title = stringResource(R.string.settings_update_check),
+                    subtitle = updateSubtitle(updateState),
+                    trailing = {
+                        TextButton(
+                            onClick = viewModel::checkForUpdates,
+                            enabled = updateState !is UpdateState.Checking &&
+                                updateState !is UpdateState.Downloading,
+                        ) {
+                            Text(stringResource(R.string.settings_update_action))
+                        }
+                    },
                 )
                 Text(
                     text = stringResource(R.string.settings_privacy_note),
@@ -394,7 +437,7 @@ private fun ModelRow(
             )
             Text(
                 text = stringResource(R.string.settings_model_size, formatSizeMb(model.approxBytes)) +
-                    " · " + stateLabel(state),
+                    " · " + modelStateLabel(state),
                 style = MaterialTheme.typography.labelSmall,
                 color = when (state) {
                     is ModelState.Failed -> MaterialTheme.colorScheme.error
@@ -406,6 +449,7 @@ private fun ModelRow(
                 LinearProgressIndicator(
                     progress = { state.progress / 100f },
                     modifier = Modifier.fillMaxWidth(),
+                    drawStopIndicator = {},
                 )
             }
         }
@@ -442,19 +486,6 @@ private fun ModelRow(
 }
 
 @Composable
-private fun stateLabel(state: ModelState): String = when (state) {
-    is ModelState.Ready -> stringResource(R.string.settings_model_ready)
-    is ModelState.Downloading -> stringResource(R.string.settings_model_downloading, state.progress)
-    is ModelState.Failed -> when (state.error) {
-        ModelError.CHECKSUM_MISMATCH -> stringResource(R.string.settings_model_checksum)
-        ModelError.NO_SPACE -> stringResource(R.string.settings_model_no_space)
-        else -> stringResource(R.string.settings_model_failed)
-    }
-
-    ModelState.NotDownloaded -> stringResource(R.string.settings_model_not_downloaded)
-}
-
-@Composable
 private fun SwitchRow(
     icon: @Composable () -> Unit,
     title: String,
@@ -485,13 +516,16 @@ private fun SwitchRow(
 
 @Composable
 private fun SettingValueRow(title: String, value: String, onClick: () -> Unit) {
-    Row(
+    // FlowRow keeps the full title width when large font scales leave no room for the value.
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
         TextButton(onClick = onClick) { Text(value) }
     }
 }
@@ -543,6 +577,21 @@ private fun TranscriptRetention.labelRes(): Int = when (this) {
     TranscriptRetention.DAYS_30 -> R.string.retention_30_days
     TranscriptRetention.DAYS_90 -> R.string.retention_90_days
     TranscriptRetention.NEVER -> R.string.retention_never
+}
+
+@Composable
+private fun updateSubtitle(state: UpdateState): String = when (state) {
+    UpdateState.Idle -> stringResource(R.string.settings_update_current, BuildConfig.VERSION_NAME)
+    UpdateState.Checking -> stringResource(R.string.settings_update_checking)
+    UpdateState.UpToDate ->
+        stringResource(R.string.settings_update_up_to_date, BuildConfig.VERSION_NAME)
+
+    is UpdateState.Available ->
+        stringResource(R.string.settings_update_available, state.update.versionName)
+
+    is UpdateState.Downloading -> stringResource(R.string.settings_update_downloading, state.percent)
+    is UpdateState.Ready -> stringResource(R.string.settings_update_ready)
+    is UpdateState.Failed -> stringResource(R.string.settings_update_failed)
 }
 
 private data class RetentionDialog(

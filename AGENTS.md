@@ -7,6 +7,16 @@
 - Alle sichtbaren Strings liegen in `app/src/main/res/values/strings.xml` – keine
   hartkodierten UI-Texte in Composables.
 
+## Dokumentation
+
+- `README.md`, `AGENTS.md` und alle Dateien in `docs/` werden bei jeder Änderung im selben
+  Commit mitgepflegt. Der Agent hält sie immer auf dem neuesten Stand.
+- Ändern sich Verhalten, Befehle, Architektur, Konventionen oder Abhängigkeiten, gehört die
+  passende Doku-Aktualisierung zur selben Änderung – nicht in einen späteren Commit.
+- Die Doku beschreibt den aktuellen Stand von `develop`. Veraltete Angaben werden korrigiert
+  statt durch neue Zusätze überdeckt.
+- Eine Änderung ohne aktualisierte Doku gilt als unfertig.
+
 ## Commits
 
 - Conventional Commits, Betreff im Imperativ und auf Englisch, z. B.
@@ -16,6 +26,13 @@
 - Mehrzeilige Bodies als Stichpunkte (`- …`).
 - Feature-Branches `feature/<name>` von `develop`; `main` nur per Pull Request.
 - Kein `git add -A`; nur die eigenen Dateien stagen.
+- Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und
+  ihre Funktionalität vollständig (100 %) bestätigen. Ohne eines von beidem wird nicht
+  committet.
+- Änderungen sinnvoll splitten: ein Commit pro abgeschlossener, eigenständiger Änderung statt
+  einem Sammelcommit über mehrere Themen.
+- Jeder Commit hält das bestehende Format ein: `typ(scope): Betreff` im Imperativ, Body als
+  Stichpunkte, keine weiteren Abweichungen.
 
 ## Architekturregeln
 
@@ -27,7 +44,8 @@
   synchrones Lesen der Theme-Einstellung beim Start).
 - Room-Schemas werden exportiert (`app/schemas`) und bei Änderungen als Migration gepflegt.
 - Design-Tokens nur aus `ui/theme/` beziehen; keine Dynamic Colors.
-- Keine neuen Netzwerkzugriffe außer dem Modelldownload. Keine Analytics/Crash-SDKs.
+- Keine neuen Netzwerkzugriffe außer dem Modelldownload und dem Update-Check samt
+  APK-Download von den eigenen GitHub-Releases. Keine Analytics/Crash-SDKs.
 
 ## Build & Tests
 
@@ -37,12 +55,22 @@
 ./gradlew connectedDebugAndroidTest
 ```
 
-`JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert). NDK 28.2 und
-CMake 3.22 sind über die SDK-Installation vorhanden. whisper.cpp liegt als Submodule unter
-`third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie eingecheckt.
+Release: Ein Tag `vX.Y.Z` löst `.github/workflows/release.yml` aus (Unit-Tests, signierte
+APK, GitHub-Release). Lokal baut `./gradlew :app:assembleRelease -PversionName=X.Y.Z` dieselbe
+Version.
+
+`JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert).
+`gradle/gradle-daemon-jvm.properties` ist lokale Konfiguration, ist in `.gitignore` und wird
+nicht committet; der Daemon nutzt die lokal installierte JDK.
+
+NDK 28.2 und CMake 3.22 sind über die SDK-Installation vorhanden. whisper.cpp liegt als
+Submodule unter `third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie eingecheckt.
 
 ## Sicherheit
 
 - Keystores, `local.properties` und Modell-Dateien niemals committen.
+- Update-APKs stammen ausschließlich aus den eigenen GitHub-Releases; vor der Installation
+  werden Paketname und Signatur geprüft.
 - Audio/Transkripte bleiben im app-privaten Speicher, keine Logs mit Transkriptinhalten.
-- `FLAG_SECURE` und App-Sperre respektieren die Nutzereinstellung.
+- `FLAG_SECURE` und App-Sperre respektieren die Nutzereinstellung. Die App-Sperre schützt
+  bewusst nur den Verlauf; das Teilen-Overlay (`ShareReceiverActivity`) bleibt ungeschützt.

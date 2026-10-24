@@ -35,39 +35,55 @@ $ANDROID_HOME/build-tools/<version>/apksigner sign \
 
 Installieren: `adb install -r transcriber-release.apk`
 
+Für das reguläre Release reicht ein Tag `vX.Y.Z` auf `main`: `.github/workflows/release.yml`
+läuft die Unit-Tests, baut die signierte APK (Secrets `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`) und veröffentlicht sie
+als GitHub-Release. Die Schritte oben bleiben für lokale Prüf-Builds.
+
 ## 2. Vorbereitung auf dem Gerät
 
 - [ ] Gerät entsperrt, mindestens ein Fingerabdruck/Gesicht registriert (Einstellungen → Sicherheit).
-- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base).
-- [ ] WLAN aktiv, App einmal starten, Onboarding abschließen, Modell laden lassen.
+- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base), mit beiden Modellen zusammen 239 MB.
+- [ ] WLAN aktiv, App einmal starten, Onboarding abschließen, Modell laden lassen (optional „Auch Base-Modell laden“ aktivieren → beide Modelle werden geladen, der Hinweistext und die Schaltfläche zeigen dann zusammen 239 MB).
+- [ ] Nach dem Onboarding in den Einstellungen prüfen: Base steht als „Bereit“, falls die Option gewählt wurde.
 - [ ] Eine Sprachnachricht über WhatsApp teilen → Transkript erscheint im Overlay (Basisfall).
 
 ## 3. Biometrie-App-Sperre
 
-- [ ] Einstellungen → Datenschutz → **App-Sperre** einschalten (Schalter ist jetzt aktiv, kein Hinweistext mehr).
-- [ ] App in den Hintergrund schicken und wieder öffnen → Sperrbildschirm erscheint, Inhalt (Verlauf) ist verdeckt.
+- [ ] Einstellungen → Datenschutz → **App-Sperre** einschalten (Schalter ist jetzt aktiv, kein Hinweistext mehr) → Biometrie-Abfrage erscheint, erst nach erfolgreicher Bestätigung steht der Schalter auf an.
+- [ ] Biometrie-Abfrage beim Einschalten abbrechen → Schalter bleibt aus, App-Sperre ist nicht aktiv.
+- [ ] App in den Hintergrund schicken (Home oder andere App) und wieder öffnen → Sperrbildschirm erscheint erneut, ohne Kaltstart; Inhalt (Verlauf) ist verdeckt.
+- [ ] Gerät im entsperrten Zustand drehen → App bleibt entsperrt, keine erneute Abfrage.
 - [ ] Entsperren mit Fingerabdruck → App öffnet sich auf dem zuletzt sichtbaren Tab.
+- [ ] Nach dem Entsperren (auch nach einem Kaltstart) erscheint der Verlauf und nicht erneut das Onboarding.
+- [ ] Base als aktives Modell wählen, Small löschen, App beenden und neu starten → der Verlauf erscheint weiterhin, kein Onboarding.
 - [ ] Abbrechen/Abbruch-Geste → App bleibt gesperrt, kein Zurück in den Verlauf.
 - [ ] Falscher Finger/Fehlversuch → Fehlermeldung, weiterhin gesperrt.
 - [ ] Gerät sperren und entsperren, App erneut öffnen → erneute Abfrage.
-- [ ] App-Sperre ausschalten → kein Sperrbildschirm mehr.
+- [ ] App-Sperre ausschalten → Biometrie-Abfrage erscheint; erst nach Bestätigung steht der Schalter auf aus und es erscheint kein Sperrbildschirm mehr.
+- [ ] Biometrie-Abfrage beim Ausschalten abbrechen → Schalter bleibt an, App-Sperre ist weiterhin aktiv.
 - [ ] Alle Fingerabdrücke in den Systemeinstellungen entfernen → App darf nicht in einen ungesperrten Zustand fallen (Hinweistext in den Einstellungen prüfen).
+- [ ] Nachricht über das Teilen-Overlay öffnen (App-Sperre aktiv) → das Overlay zeigt das Transkript ohne zusätzliche Abfrage; der Verlauf bleibt beim Zurückkehren gesperrt.
 
 ## 4. Aufbewahrungsfristen
 
-Einstellungen → Aufbewahrung (Audio / Transkript).
+Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 
-- [ ] **Audio = Sofort**: Nachricht teilen, Transkription abwarten → Detailansicht zeigt keinen Player mehr, `files/audio/` ist leer, Transkript bleibt erhalten.
-- [ ] **Audio = 30 Tage**: Nachricht teilen und transkribieren → Audiodatei bleibt abspielbar.
+- [ ] **Audio löschen = Sofort nach Transkription**: Nachricht teilen, Transkription abwarten → Detailansicht zeigt keinen Player mehr, `files/audio/` ist leer, Transkript bleibt erhalten.
+- [ ] **Audio löschen = Nach 30 Tagen**: Nachricht teilen und transkribieren → Audiodatei bleibt abspielbar.
 - [ ] **Ablauf simulieren**: Gerätedatum 31 Tage vorstellen, App vollständig beenden und neu starten (löst `CleanupWorker` über `runNow()` aus) → alte Audiodatei ist gelöscht, Verlaufseintrag und Transkript bleiben sichtbar; Datum danach zurücksetzen.
-- [ ] **Transkript = Nie** (Standard): Einträge überleben den simulierten Ablauf.
-- [ ] **Transkript = 30 Tage**: gleicher Ablauf, jetzt verschwindet auch der Eintrag aus dem Verlauf.
+- [ ] **Transkript löschen = Nie** (Standard): Einträge überleben den simulierten Ablauf.
+- [ ] **Transkript löschen = Nach 30 Tagen**: gleicher Ablauf, jetzt verschwindet auch der Eintrag aus dem Verlauf.
 - [ ] Nach dem Löschen: Suche findet die alten Begriffe nicht mehr (FTS-Index).
 
 ## 5. Notification-Berechtigung
 
+- [ ] Android 13+ mit gelöschten App-Daten starten → vor dem Systemdialog erscheint der Erklärungsbildschirm mit Fortschritt, Modelldownload und Freiwilligkeit.
+- [ ] **Ohne Benachrichtigungen weiter** → kein Systemdialog, es geht direkt zum Modell-Onboarding bzw. Verlauf; App beenden und neu starten → der Erklärungsbildschirm erscheint nicht erneut.
+- [ ] App-Daten erneut löschen, App starten, **Benachrichtigungen erlauben** → erst jetzt erscheint der Systemdialog; danach startet der Modell-Onboarding-Schritt, und Zurück führt nicht auf den Erklärungsbildschirm.
+- [ ] Android 12 und älter → kein Erklärungsbildschirm und keine Abfrage, Benachrichtigungen sind von Anfang an aktiv.
 - [ ] Einstellungen → Apps → Transcriber → Benachrichtigungen **aus**; App-Daten löschen, damit die Abfrage erneut erscheint.
-- [ ] App starten → Berechtigungsdialog → **Don't allow**.
+- [ ] App starten → Erklärungsbildschirm → **Benachrichtigungen erlauben** → im Systemdialog **Don't allow**.
 - [ ] Nachricht teilen → Transkription läuft trotzdem durch, Fortschritt ist im Overlay sichtbar, kein Absturz.
 - [ ] Während der Transkription App verlassen → Dienst läuft weiter, kommt nach Rückkehr zum Ergebnis.
 - [ ] Berechtigung nachträglich erteilen → nächste Transkription zeigt Fortschritts-Notification (inkl. Dateiname, ohne Transkriptinhalt).
@@ -75,10 +91,16 @@ Einstellungen → Aufbewahrung (Audio / Transkript).
 ## 6. Zusätzlich sinnvoll
 
 - [ ] Echte WhatsApp-Sprachnachricht (OGG/Opus, mehrere Minuten) teilen → Dauer, Fortschritt, Transkriptqualität.
+- [ ] Nachricht mit mehr als 15 Sekunden teilen → im Overlay und in der Detailansicht wächst der Text während der Transkription, der Hinweis „Live-Vorschau …“ ist sichtbar, am Ende steht derselbe Text ohne Sprung, ohne doppelte Wörter und ohne falsche Satzzeichen an den Fenstergrenzen.
+- [ ] Kurze Nachricht (unter 15 Sekunden) teilen → Verhalten wie bisher: Text erscheint erst mit dem Abschluss.
+- [ ] Fehlgeschlagene Transkription erneut starten und während der Live-Vorschau abbrechen (App beenden) → Eintrag steht wieder auf „In Warteschlange“, keine halbe Vorschau bleibt sichtbar.
+- [ ] Update von der vorherigen App-Version mit gefülltem Verlauf installieren → Datenbank-Migration läuft, alle Einträge und ihre Transkripte bleiben erhalten.
 - [ ] Einstellungen → **Bildschirmfotos verhindern**: Screenshot über die Systemfunktion → schwarzes Bild; wieder ausschalten → Screenshot funktioniert.
+- [ ] App-Icon auf Homescreen und in den App-Infos prüfen: neues Logo, runde Maske schneidet die Sprechblase nicht an.
 - [ ] Modellwechsel Small ↔ Base auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).
+- [ ] Einstellungen bei 200 % Systemschrift und ca. 320 dp Breite prüfen → Aufbewahrungszeilen bleiben lesbar und brechen nicht mitten im Wort um.
 - [ ] App-Sprache/Theme umschalten und App neu starten → Einstellungen bleiben erhalten.
-- [ ] Flugmodus: Transkription funktioniert weiterhin (nur der Modelldownload braucht Netz).
+- [ ] Flugmodus: Transkription funktioniert weiterhin (nur Modelldownload und Update-Check brauchen Netz).
 
 ## 7. Release-Build prüfen
 
@@ -86,3 +108,17 @@ Einstellungen → Aufbewahrung (Audio / Transkript).
 - [ ] `apksigner verify --print-certs` bestätigt die eigene Signatur (nicht den Debug-Key).
 - [ ] Keine Debug-Marker: `aapt2 dump badging` zeigt `application-debuggable` nicht.
 - [ ] Backup-Regeln greifen: Einstellungen → Apps → Transcriber → „Daten sichern" deaktiviert bzw. ein Backup enthält weder Datenbank noch Audio.
+
+## 8. In-App-Update
+
+Vorbereitung: Eine ältere signierte Version installieren, dann einen Tag `vX.Y.Z` pushen und
+den Release-Workflow abwarten.
+
+- [ ] Workflow-Lauf grün; das GitHub-Release enthält genau eine APK `transcriber-X.Y.Z-arm64-v8a.apk` und generierte Notes.
+- [ ] App starten → nach spätestens einem Tag zeigt sie den Update-Dialog mit Version, Größe und Notes.
+- [ ] **Später** → Dialog schließt, App neu starten → dieselbe Version wird nicht erneut angeboten; „Prüfen“ in den Einstellungen findet sie weiterhin.
+- [ ] **Herunterladen** zeigt Fortschritt; danach **Installieren** öffnet den Android-Installer (ggf. mit „Unbekannte Apps“-Rückfrage) und das Update installiert sich über die alte Version.
+- [ ] Nach der Installation: Verlauf, Einstellungen und Modelle sind unverändert; die Einstellungen zeigen die neue Version.
+- [ ] Installation abbrechen → App läuft weiter, kein Datenverlust; die Suche lässt sich manuell wiederholen.
+- [ ] Flugmodus und **Prüfen** → verständliche Fehlermeldung statt Absturz.
+- [ ] Debug-Build angetippt: Update-Download endet mit „Datei passt nicht zu dieser App“ (eigene Application-ID).

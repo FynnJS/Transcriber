@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.fynnjs.transcriber.data.local.HistoryDao
+import dev.fynnjs.transcriber.data.local.MIGRATION_1_2
 import dev.fynnjs.transcriber.data.local.TranscriberDatabase
 import javax.inject.Singleton
 
@@ -20,6 +21,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TranscriberDatabase =
         Room.databaseBuilder(context, TranscriberDatabase::class.java, "transcriber.db")
+            .addMigrations(MIGRATION_1_2)
             .build()
 
     @Provides

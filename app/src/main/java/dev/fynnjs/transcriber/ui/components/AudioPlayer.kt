@@ -13,10 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.VolumeOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,6 +51,7 @@ import java.io.File
  * Inkognito player: plays only a file from the app-private audio folder. Nothing is reported
  * back to WhatsApp because playback never touches its player or its message state.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioPlayer(
     file: File?,
@@ -148,6 +151,14 @@ fun AudioPlayer(
                         },
                         valueRange = 0f..(duration.coerceAtLeast(1L)).toFloat(),
                         enabled = duration > 0L,
+                        // The Material 3 track ends in a dot; the player only needs the line.
+                        track = { sliderState ->
+                            SliderDefaults.Track(
+                                sliderState = sliderState,
+                                enabled = duration > 0L,
+                                drawStopIndicator = null,
+                            )
+                        },
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),

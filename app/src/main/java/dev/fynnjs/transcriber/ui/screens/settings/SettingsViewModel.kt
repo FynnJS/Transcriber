@@ -13,10 +13,12 @@ import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.ThemeMode
 import dev.fynnjs.transcriber.domain.model.TranscriptionLanguage
 import dev.fynnjs.transcriber.domain.model.TranscriptRetention
+import dev.fynnjs.transcriber.domain.model.UpdateState
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.domain.repository.HistoryRepository
 import dev.fynnjs.transcriber.domain.repository.ModelRepository
 import dev.fynnjs.transcriber.domain.repository.SettingsRepository
+import dev.fynnjs.transcriber.domain.repository.UpdateRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +32,7 @@ class SettingsViewModel @Inject constructor(
     private val modelRepository: ModelRepository,
     private val historyRepository: HistoryRepository,
     private val cleanupScheduler: CleanupScheduler,
+    private val updateRepository: UpdateRepository,
     @ApplicationContext context: Context,
 ) : ViewModel() {
 
@@ -41,6 +44,12 @@ class SettingsViewModel @Inject constructor(
     val notificationsEnabled = MutableStateFlow(
         NotificationManagerCompat.from(context).areNotificationsEnabled(),
     )
+
+    val updateState: StateFlow<UpdateState> = updateRepository.state
+
+    fun checkForUpdates() {
+        viewModelScope.launch { updateRepository.check(manual = true) }
+    }
 
     fun setTheme(theme: ThemeMode) {
         viewModelScope.launch { settingsRepository.setTheme(theme) }

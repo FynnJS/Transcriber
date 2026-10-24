@@ -3,7 +3,7 @@ package dev.fynnjs.transcriber.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Brand green taken from docs/Logo.png
-val BrandGreen = Color(0xFF14A74B)
+val BrandGreen = Color(0xFF16A64B)
 val BrandGreenBright = Color(0xFF1CB55A)
 val BrandGreenDark = Color(0xFF0E7A36)
 

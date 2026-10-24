@@ -1,8 +1,8 @@
 package dev.fynnjs.transcriber.ui.screens.detail
 
 import android.content.Intent
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,13 +17,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.fynnjs.transcriber.R
 import dev.fynnjs.transcriber.domain.model.HistoryEntry
+import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.TranscriptionStatus
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.components.AudioPlayer
@@ -63,8 +69,11 @@ import dev.fynnjs.transcriber.ui.components.PrimaryButton
 import dev.fynnjs.transcriber.ui.components.SecondaryButton
 import dev.fynnjs.transcriber.ui.components.StatusChip
 import dev.fynnjs.transcriber.ui.components.TranscriberTopBar
+import dev.fynnjs.transcriber.ui.components.TranscriptionProgressBar
+import dev.fynnjs.transcriber.ui.components.modelStateLabel
 import dev.fynnjs.transcriber.ui.util.formatDate
 import dev.fynnjs.transcriber.ui.util.formatDuration
+import dev.fynnjs.transcriber.ui.util.formatSizeMb
 import dev.fynnjs.transcriber.ui.util.formatTime
 import dev.fynnjs.transcriber.ui.util.languageLabel
 import kotlinx.coroutines.launch
@@ -78,6 +87,7 @@ fun DetailScreen(
     val entry by viewModel.entry.collectAsStateWithLifecycle()
     val audioFile by viewModel.audioFile.collectAsStateWithLifecycle()
     val recentLabels by viewModel.recentLabels.collectAsStateWithLifecycle()
+    val modelStates by viewModel.modelStates.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -89,6 +99,7 @@ fun DetailScreen(
 
     val copiedText = stringResource(R.string.copied)
     val retryStarted = stringResource(R.string.detail_retry_started)
+    val retryBlocked = stringResource(R.string.error_model_missing)
     val shareChooser = stringResource(R.string.detail_share_chooser)
 
     if (showDeleteDialog) {
@@ -216,41 +227,18 @@ fun DetailScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!current.label.isNullOrBlank()) {
-                    LabelChip(
-                        label = current.label.orEmpty(),
-                        onClick = {
-                            labelDraft = current.label.orEmpty()
-                            showLabelDialog = true
-                        },
-                        onRemove = { viewModel.setLabel(null) },
-                    )
-                } else {
-                    SecondaryButton(
-                        text = stringResource(R.string.detail_label_add),
-                        onClick = {
-                            labelDraft = ""
-                            showLabelDialog = true
-                        },
-                        icon = Icons.Outlined.Label,
-                    )
-                }
-                SecondaryButton(
-                    text = stringResource(R.string.detail_edit_label),
-                    onClick = {
-                        labelDraft = current.label.orEmpty()
-                        showLabelDialog = true
-                    },
-                    icon = Icons.Outlined.Edit,
-                )
-            }
+            DetailLabelActions(
+                label = current.label,
+                onAddLabel = {
+                    labelDraft = ""
+                    showLabelDialog = true
+                },
+                onEditLabel = {
+                    labelDraft = current.label.orEmpty()
+                    showLabelDialog = true
+                },
+                onRemoveLabel = { viewModel.setLabel(null) },
+            )
 
             Spacer(Modifier.height(16.dp))
             AudioPlayer(file = audioFile)
@@ -267,16 +255,23 @@ fun DetailScreen(
                 current.status == TranscriptionStatus.TRANSCRIBING
             ) {
                 Spacer(Modifier.height(16.dp))
-                LinearProgressIndicator(
-                    progress = { current.progress / 100f },
+                TranscriptionProgressBar(
+                    progress = current.progress,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = if (current.status == TranscriptionStatus.QUEUED) {
-                        stringResource(R.string.status_queued)
-                    } else {
-                        stringResource(R.string.status_transcribing)
+                    text = when {
+                        current.status == TranscriptionStatus.QUEUED ->
+                            stringResource(R.string.status_queued)
+
+                        current.progress > 0 -> stringResource(
+                            R.string.status_progress,
+                            stringResource(R.string.status_transcribing),
+                            current.progress,
+                        )
+
+                        else -> stringResource(R.string.status_transcribing)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -290,9 +285,18 @@ fun DetailScreen(
                     message = current.errorMessage ?: stringResource(R.string.error_generic),
                     actionLabel = stringResource(R.string.action_retry),
                     onAction = {
-                        viewModel.retry()
-                        scope.launch { snackbarHostState.showSnackbar(retryStarted) }
+                        // Without a downloaded model nothing starts, so no success message.
+                        val started = viewModel.retry(current)
+                        scope.launch {
+                            snackbarHostState.showSnackbar(if (started) retryStarted else retryBlocked)
+                        }
                     },
+                )
+                Spacer(Modifier.height(12.dp))
+                DetailModelPicker(
+                    selected = WhisperModel.fromId(current.modelUsed),
+                    states = modelStates,
+                    onSelect = viewModel::selectModel,
                 )
                 Spacer(Modifier.height(8.dp))
                 SecondaryButton(
@@ -301,39 +305,17 @@ fun DetailScreen(
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                text = stringResource(R.string.detail_transcript),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(Modifier.height(8.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    if (current.hasTranscript) {
-                        SelectionContainer {
-                            Text(
-                                text = current.transcript.orEmpty(),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = stringResource(R.string.detail_no_text),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.detail_no_text_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+            // The empty state only belongs to finished entries: while an entry is queued or
+            // still transcribing, there is no result yet and a failure is explained above.
+            // During a run the growing live preview takes precedence over an older transcript.
+            val shownTranscript = current.displayedTranscript
+            if (transcriptSection(current.status, !shownTranscript.isNullOrBlank()) != TranscriptSection.Hidden) {
+                Spacer(Modifier.height(20.dp))
+                TranscriptArea(
+                    status = current.status,
+                    transcript = shownTranscript,
+                    live = current.isLivePreview,
+                )
             }
 
             if (current.hasTranscript) {
@@ -384,3 +366,251 @@ fun DetailScreen(
     }
 }
 
+/**
+ * Model dropdown for the next transcription of an entry.
+ *
+ * Every model is listed with its state; choosing one that is not downloaded yet starts the
+ * download from here.
+ */
+@Composable
+internal fun DetailModelPicker(
+    selected: WhisperModel,
+    states: Map<WhisperModel, ModelState>,
+    onSelect: (WhisperModel) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedState = states[selected] ?: ModelState.NotDownloaded
+
+    Column(modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.detail_model_picker),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Spacer(Modifier.height(4.dp))
+        Box {
+            SecondaryButton(
+                text = selected.displayName,
+                onClick = { expanded = true },
+                icon = Icons.Outlined.ArrowDropDown,
+            )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                WhisperModel.entries.forEach { model ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    text = model.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.settings_model_size,
+                                        formatSizeMb(model.approxBytes),
+                                    ) + " · " + modelStateLabel(
+                                        states[model] ?: ModelState.NotDownloaded,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        onClick = {
+                            expanded = false
+                            onSelect(model)
+                        },
+                        trailingIcon = if (model == selected) {
+                            { Icon(Icons.Outlined.Check, contentDescription = null) }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+        }
+
+        when (selectedState) {
+            is ModelState.Downloading -> {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { selectedState.progress / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                    drawStopIndicator = {},
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(
+                        R.string.settings_model_downloading,
+                        selectedState.progress,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // A failed download restarts from here, matching the settings screen.
+            is ModelState.Failed -> {
+                Spacer(Modifier.height(8.dp))
+                SecondaryButton(
+                    text = stringResource(R.string.settings_model_download),
+                    onClick = { onSelect(selected) },
+                    icon = Icons.Outlined.Download,
+                )
+            }
+
+            else -> Unit
+        }
+    }
+}
+
+/** Body of the transcript area on the detail screen. */
+internal enum class TranscriptSection {
+    /** Failure without a transcript: the error state above already explains the entry. */
+    Hidden,
+
+    /** Queued or still transcribing: the transcript is not available yet. */
+    Pending,
+
+    /** Finished without text, for example a silent or very short recording. */
+    NoText,
+
+    /** The entry carries a transcript. */
+    Transcript,
+}
+
+/**
+ * Maps an entry state to the transcript area it shows.
+ *
+ * The no-text empty state must only describe a finished entry. During a retry the entry is
+ * queued or transcribing while its text is still missing, which is not the same as a silent
+ * recording.
+ */
+internal fun transcriptSection(
+    status: TranscriptionStatus,
+    hasTranscript: Boolean,
+): TranscriptSection = when {
+    hasTranscript -> TranscriptSection.Transcript
+    status == TranscriptionStatus.DONE -> TranscriptSection.NoText
+    status == TranscriptionStatus.QUEUED ||
+        status == TranscriptionStatus.TRANSCRIBING -> TranscriptSection.Pending
+
+    else -> TranscriptSection.Hidden
+}
+
+/**
+ * Transcript area of the detail screen: heading, card and content for the entry state.
+ *
+ * Renders nothing for a failed entry without text; the error state above already explains it.
+ */
+@Composable
+internal fun TranscriptArea(
+    status: TranscriptionStatus,
+    transcript: String?,
+    live: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val section = transcriptSection(status, hasTranscript = !transcript.isNullOrBlank())
+    if (section == TranscriptSection.Hidden) return
+
+    Column(modifier) {
+        Text(
+            text = stringResource(R.string.detail_transcript),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(Modifier.height(8.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                when (section) {
+                    TranscriptSection.Transcript -> {
+                        SelectionContainer {
+                            Text(
+                                text = transcript.orEmpty(),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        if (live) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.transcript_live_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    TranscriptSection.NoText -> {
+                        Text(
+                            text = stringResource(R.string.detail_no_text),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.detail_no_text_hint),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    TranscriptSection.Pending ->
+                        Text(
+                            text = stringResource(R.string.detail_transcript_pending),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                    TranscriptSection.Hidden -> Unit
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Label chip and its edit actions.
+ *
+ * The row wraps instead of scrolling, so a long label is ellipsized and the edit action stays
+ * visible on narrow displays.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun DetailLabelActions(
+    label: String?,
+    onAddLabel: () -> Unit,
+    onEditLabel: () -> Unit,
+    onRemoveLabel: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (!label.isNullOrBlank()) {
+            LabelChip(
+                label = label,
+                onClick = onEditLabel,
+                onRemove = onRemoveLabel,
+            )
+        } else {
+            SecondaryButton(
+                text = stringResource(R.string.detail_label_add),
+                onClick = onAddLabel,
+                icon = Icons.Outlined.Label,
+            )
+        }
+        SecondaryButton(
+            text = stringResource(R.string.detail_edit_label),
+            onClick = onEditLabel,
+            icon = Icons.Outlined.Edit,
+        )
+    }
+}

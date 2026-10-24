@@ -2,10 +2,24 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
+
+/**
+ * Der Release-Tag bestimmt die Version: `v1.2.3` wird zu versionName `1.2.3` und versionCode
+ * `10203`. So steigt der versionCode mit jedem Patch und Android akzeptiert das Update.
+ */
+fun semanticVersionCode(versionName: String): Int {
+    val parts = versionName.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 }
+    return parts.getOrElse(0) { 0 } * 10_000 +
+        parts.getOrElse(1) { 0 } * 100 +
+        parts.getOrElse(2) { 0 }
+}
+
+val appVersionName = providers.gradleProperty("versionName").orNull ?: "1.0.0"
 
 android {
     namespace = "dev.fynnjs.transcriber"
@@ -16,8 +30,8 @@ android {
         applicationId = "dev.fynnjs.transcriber"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = semanticVersionCode(appVersionName)
+        versionName = appVersionName
 
         testInstrumentationRunner = "dev.fynnjs.transcriber.HiltTestRunner"
         vectorDrawables { useSupportLibrary = true }

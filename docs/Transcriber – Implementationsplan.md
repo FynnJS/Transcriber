@@ -118,8 +118,8 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 9. Schritt 7: Modell-Verwaltung
 
 1. `ModelRepository`: Zustand pro Modell (nicht geladen, lädt, bereit, Fehler), Ablage unter `filesDir/models/`.
-2. Download der quantisierten ggml-Modelle (*small* und *base*) über WorkManager: fortsetzbar, mit Fortschritt. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
-3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Die App funktioniert erst nach erfolgreichem Download des Standardmodells.
+2. Download der quantisierten ggml-Modelle (*small* und *base*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
+3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Er erscheint nur, wenn kein Modell bereit ist; vorhandene Modelldateien haben Vorrang vor älteren WorkManager-Einträgen abgelöster Downloads, damit ein früherer Fehlschlag ein fertiges Modell nicht verdeckt.
 4. In den Einstellungen: Modell wechseln, weiteres Modell laden, Modell löschen.
 5. Die `INTERNET`-Berechtigung wird nur für diesen Download genutzt (Transkription bleibt komplett offline).
 
@@ -128,9 +128,9 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 10. Schritt 8: Transkriptions-Pipeline und Service
 
 1. `TranscriptionService` als Foreground-Service mit Benachrichtigungskanal. Den passenden `foregroundServiceType` für das gewählte `targetSdk` festlegen: ab Android 15 mediaProcessing, darunter dataSync (der Typ wird beim Start des Service per SDK-Version gewählt), und samt passender Berechtigung im Manifest deklarieren.
-2. `POST_NOTIFICATIONS` (Android 13 und höher) beim ersten Start anfragen und die Verweigerung sauber behandeln (Service läuft trotzdem, nur ohne sichtbare Benachrichtigung bei neueren Versionen: Hinweis im UI).
+2. `POST_NOTIFICATIONS` (Android 13 und höher) nicht sofort abfragen, sondern einmalig über einen Erklärungsbildschirm vor dem Modell-Onboarding: Nutzen (Download- und Transkriptionsfortschritt), Freiwilligkeit und die beiden Antworten („Benachrichtigungen erlauben“ öffnet den Systemdialog, „Ohne Benachrichtigungen weiter“ überspringt ihn). Die Verweigerung bleibt sauber behandelt (Service läuft trotzdem, nur ohne sichtbare Benachrichtigung bei neueren Versionen: Hinweis im UI).
 3. Eine Warteschlange, die Einträge nacheinander abarbeitet: `QUEUED` → `TRANSCRIBING` → `DONE` oder `FAILED`.
-4. Fortschritt über den Whisper-Callback in den Eintrag und die Benachrichtigung schreiben.
+4. Fortschritt über den Whisper-Callback in den Eintrag und die Benachrichtigung schreiben. Längere Nachrichten laufen in überlappenden 10-Sekunden-Fenstern; der erkannte Text erscheint als Live-Vorschau im Eintrag, während der fertige Text aus denselben Fenstern zusammengesetzt wird.
 5. Robustheit: Beim App-Start Einträge, die in `TRANSCRIBING` hängen geblieben sind (Prozess beendet), zurück auf `QUEUED` setzen und neu starten.
 6. Leeres oder stilles Ergebnis als eigenen Zustand behandeln ("Kein Text erkannt").
 
@@ -167,8 +167,8 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 14. Schritt 12: Datenschutz und Härtung
 
 1. `allowBackup` ausschalten bzw. Datenbank und Audioordner in den Backup- und Datenübertragungsregeln ausschließen.
-2. Keine Analyse- oder Tracking-Bibliotheken, keine Netzwerkzugriffe außer dem Modell-Download.
-3. Berechtigungen minimal halten (`INTERNET`, `POST_NOTIFICATIONS`, Foreground-Service-Berechtigung).
+2. Keine Analyse- oder Tracking-Bibliotheken, keine Netzwerkzugriffe außer dem Modell-Download und dem Update-Check samt APK-Download von den eigenen GitHub-Releases.
+3. Berechtigungen minimal halten (`INTERNET`, `POST_NOTIFICATIONS`, `REQUEST_INSTALL_PACKAGES`, Foreground-Service-Berechtigung).
 4. Entscheidung: App-Sperre per Biometrie und Bildschirmfoto-Schutz (`FLAG_SECURE`) für den Verlauf. Umsetzung: `FLAG_SECURE` und Biometrie-Sperre, jeweils als Schalter in den Einstellungen.
 5. Datenschutzerklärung schreiben (nötig für eine Veröffentlichung).
 
@@ -193,8 +193,10 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 
 1. Release-Build mit R8; Keep-Regeln für die JNI-Klassen nicht vergessen.
 2. Signierung mit eigenem Keystore, der niemals ins Repository kommt (nur lokal oder in sicheren Secrets).
-3. Versionierung (`versionName` / `versionCode`), Pull Request von `develop` nach `main`, Tag `v1.0.0`.
-4. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
+3. Versionierung (`versionName` / `versionCode`): Der Tag `vX.Y.Z` bestimmt beides (`-PversionName`, abgeleiteter `versionCode`), Pull Request von `develop` nach `main`, dann Tag `v1.0.0`.
+4. CI/CD: `.github/workflows/release.yml` testet, baut die signierte APK aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und veröffentlicht sie beim Tag-Push als GitHub-Release.
+5. In-App-Update: höchstens ein Check pro Tag gegen die GitHub-Releases-API, Dialog, Download in den Cache mit Prüfung von Paketname und Signatur und Übergabe an den Android-Installer; „Später“ merkt sich die Version, die Einstellungen bieten eine manuelle Suche.
+6. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
 
 ## 18. Geklärte Punkte
 
