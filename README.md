@@ -74,6 +74,10 @@ whisper.cpp-Repository (Hugging Face) geladen und per SHA-256 geprüft:
 | base | `ggml-base-q5_1.bin` | 59.707.625 B | `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898` |
 | small | `ggml-small-q5_1.bin` | 190.085.487 B | `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb` |
 
+Vor jedem Download prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen
+Fehler; gleichzeitig gestartete Downloads (etwa *small* und *base* im Onboarding) legen den
+Modellordner kollisionsfrei an.
+
 Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 
 ## Branch-Workflow

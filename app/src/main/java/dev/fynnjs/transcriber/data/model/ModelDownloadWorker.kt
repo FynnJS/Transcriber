@@ -44,14 +44,25 @@ class ModelDownloadWorker(
         if (storage.isPresent(model)) {
             return@withContext Result.success()
         }
+        if (!storage.hasRoomFor(model)) {
+            return@withContext failure(ModelError.NO_SPACE)
+        }
 
         setForeground(createForegroundInfo(0))
 
         try {
             download(model)
         } catch (e: IOException) {
-            Result.failure(workDataOf(KEY_ERROR to ModelError.DOWNLOAD_FAILED.name))
+            val error = if (e.isDiskFull()) ModelError.NO_SPACE else ModelError.DOWNLOAD_FAILED
+            Result.failure(workDataOf(KEY_ERROR to error.name))
         }
+    }
+
+    /** ENOSPC surfaces as a generic [IOException], so the message is the only reliable hint. */
+    private fun IOException.isDiskFull(): Boolean {
+        val text = message ?: return false
+        return text.contains("ENOSPC", ignoreCase = true) ||
+            text.contains("No space left", ignoreCase = true)
     }
 
     private suspend fun download(model: WhisperModel): Result {

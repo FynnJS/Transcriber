@@ -1,6 +1,7 @@
 package dev.fynnjs.transcriber.data.model
 
 import android.content.Context
+import android.os.StatFs
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import java.io.File
 import java.security.MessageDigest
@@ -23,7 +24,22 @@ class ModelStorage(context: Context) {
         partFile(model).delete()
     }
 
-    fun directoryReady(): Boolean = directory.exists() || directory.mkdirs()
+    /**
+     * Creates the folder if needed. `mkdirs()` fails when another download created the folder
+     * in the meantime, so the result is checked on disk instead of trusting its return value.
+     */
+    fun directoryReady(): Boolean = directory.isDirectory || directory.mkdirs() || directory.isDirectory
+
+    /** True when the volume still has room for the bytes of [model] that are not downloaded yet. */
+    fun hasRoomFor(model: WhisperModel): Boolean {
+        val missingBytes = (model.approxBytes - partFile(model).length()).coerceAtLeast(0L)
+        return availableBytes() >= missingBytes
+    }
+
+    /** Free bytes on the volume that stores the models. */
+    fun availableBytes(): Long = runCatching {
+        StatFs(directory.path).availableBytes
+    }.getOrDefault(Long.MAX_VALUE)
 
     fun sha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
