@@ -50,6 +50,8 @@ Installieren: `adb install -r transcriber-release.apk`
 - [ ] App in den Hintergrund schicken (Home oder andere App) und wieder öffnen → Sperrbildschirm erscheint erneut, ohne Kaltstart; Inhalt (Verlauf) ist verdeckt.
 - [ ] Gerät im entsperrten Zustand drehen → App bleibt entsperrt, keine erneute Abfrage.
 - [ ] Entsperren mit Fingerabdruck → App öffnet sich auf dem zuletzt sichtbaren Tab.
+- [ ] Nach dem Entsperren (auch nach einem Kaltstart) erscheint der Verlauf und nicht erneut das Onboarding.
+- [ ] Base als aktives Modell wählen, Small löschen, App beenden und neu starten → der Verlauf erscheint weiterhin, kein Onboarding.
 - [ ] Abbrechen/Abbruch-Geste → App bleibt gesperrt, kein Zurück in den Verlauf.
 - [ ] Falscher Finger/Fehlversuch → Fehlermeldung, weiterhin gesperrt.
 - [ ] Gerät sperren und entsperren, App erneut öffnen → erneute Abfrage.

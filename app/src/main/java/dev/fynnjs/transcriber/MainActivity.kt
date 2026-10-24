@@ -58,9 +58,7 @@ class MainActivity : FragmentActivity() {
         applySecureFlag(initialSettings.secureScreen)
 
         setContent {
-            val startDestination = remember {
-                if (modelRepository.isReady(WhisperModel.DEFAULT)) Routes.HISTORY else Routes.ONBOARDING
-            }
+            val startDestination = remember { initialRoute(modelRepository) }
             val settings by settingsRepository.settings
                 .collectAsStateWithLifecycle(initialValue = initialSettings)
 
@@ -152,6 +150,14 @@ class MainActivity : FragmentActivity() {
         const val KEY_NOTIFICATION_PROMPTED = "notification_prompted"
     }
 }
+
+/**
+ * Skips onboarding as soon as any model is usable. The active model can be Base instead of the
+ * default Small, so tying the start destination to the default model alone would send users who
+ * deleted Small back to the download screen after the activity was recreated.
+ */
+internal fun initialRoute(modelRepository: ModelRepository): String =
+    if (WhisperModel.entries.any { modelRepository.isReady(it) }) Routes.HISTORY else Routes.ONBOARDING
 
 object Routes {
     const val ONBOARDING = "onboarding"

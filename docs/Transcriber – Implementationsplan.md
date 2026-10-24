@@ -119,7 +119,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 
 1. `ModelRepository`: Zustand pro Modell (nicht geladen, lädt, bereit, Fehler), Ablage unter `filesDir/models/`.
 2. Download der quantisierten ggml-Modelle (*small* und *base*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
-3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Die App funktioniert erst nach erfolgreichem Download des Standardmodells.
+3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Er erscheint nur, wenn kein Modell bereit ist; vorhandene Modelldateien haben Vorrang vor älteren WorkManager-Einträgen abgelöster Downloads, damit ein früherer Fehlschlag ein fertiges Modell nicht verdeckt.
 4. In den Einstellungen: Modell wechseln, weiteres Modell laden, Modell löschen.
 5. Die `INTERNET`-Berechtigung wird nur für diesen Download genutzt (Transkription bleibt komplett offline).
 

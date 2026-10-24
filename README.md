@@ -83,6 +83,12 @@ Vor jedem Download prüft der Worker den freien Speicher und meldet fehlenden Pl
 Fehler; gleichzeitig gestartete Downloads (etwa *small* und *base* im Onboarding) legen den
 Modellordner kollisionsfrei an.
 
+Ob ein Modell bereit ist, entscheidet die Datei auf dem Gerät – nicht der letzte
+WorkManager-Eintrag. WorkManager behält die Einträge abgelöster Downloads, deshalb werden alte
+Fehlschläge ignoriert, sobald eine spätere Version des Downloads erfolgreich war. Das Onboarding
+erscheint nur noch, wenn **kein** Modell bereit ist; ein gelöschtes Standardmodell schickt
+bestehende Nutzer nicht mehr zurück auf den Einführungsbildschirm.
+
 Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 
 ## Branch-Workflow
