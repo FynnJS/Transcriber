@@ -90,10 +90,15 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" \
-            "transcriber-${version}-arm64-v8a.apk" \
-            --title "Transcriber ${version}" \
-            --generate-notes
+          asset="transcriber-${version}-arm64-v8a.apk"
+          # Re-running the job must not fail on an already published release.
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$asset" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$asset" \
+              --title "Transcriber ${version}" \
+              --generate-notes
+          fi
 
       - name: Remove signing material
         if: always()
