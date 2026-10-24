@@ -168,6 +168,19 @@
     <string name="onboarding_wifi_hint">Am besten im WLAN laden.</string>
     <string name="onboarding_skip">Später</string>
 
+    <!-- Notification onboarding -->
+    <string name="notifications_onboarding_title">Benachrichtigungen</string>
+    <string name="notifications_onboarding_subtitle">Transcriber meldet sich nur, solange etwas läuft – nie mit Werbung oder Tipps.</string>
+    <string name="notifications_onboarding_progress_title">Fortschritt beim Transkribieren</string>
+    <string name="notifications_onboarding_progress_text">Prozent und Dateiname bleiben sichtbar, auch wenn du WhatsApp oder eine andere App öffnest.</string>
+    <string name="notifications_onboarding_download_title">Modelldownload</string>
+    <string name="notifications_onboarding_download_text">Der einmalige Download läuft weiter, wenn du die App verlässt – die Benachrichtigung zeigt, wie weit er ist.</string>
+    <string name="notifications_onboarding_optional_title">Freiwillig</string>
+    <string name="notifications_onboarding_optional_text">Lehnst du ab, transkribiert die App weiter; den Fortschritt siehst du dann nur in der App.</string>
+    <string name="notifications_onboarding_allow">Benachrichtigungen erlauben</string>
+    <string name="notifications_onboarding_skip">Ohne Benachrichtigungen weiter</string>
+    <string name="notifications_onboarding_settings_hint">Du kannst das jederzeit in den Android-Einstellungen ändern.</string>
+
     <!-- Player -->
     <string name="player_play">Abspielen</string>
     <string name="player_pause">Pause</string>

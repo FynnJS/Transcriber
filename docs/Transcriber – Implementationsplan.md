@@ -128,7 +128,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 10. Schritt 8: Transkriptions-Pipeline und Service
 
 1. `TranscriptionService` als Foreground-Service mit Benachrichtigungskanal. Den passenden `foregroundServiceType` für das gewählte `targetSdk` festlegen: ab Android 15 mediaProcessing, darunter dataSync (der Typ wird beim Start des Service per SDK-Version gewählt), und samt passender Berechtigung im Manifest deklarieren.
-2. `POST_NOTIFICATIONS` (Android 13 und höher) beim ersten Start anfragen und die Verweigerung sauber behandeln (Service läuft trotzdem, nur ohne sichtbare Benachrichtigung bei neueren Versionen: Hinweis im UI).
+2. `POST_NOTIFICATIONS` (Android 13 und höher) nicht sofort abfragen, sondern einmalig über einen Erklärungsbildschirm vor dem Modell-Onboarding: Nutzen (Download- und Transkriptionsfortschritt), Freiwilligkeit und die beiden Antworten („Benachrichtigungen erlauben“ öffnet den Systemdialog, „Ohne Benachrichtigungen weiter“ überspringt ihn). Die Verweigerung bleibt sauber behandelt (Service läuft trotzdem, nur ohne sichtbare Benachrichtigung bei neueren Versionen: Hinweis im UI).
 3. Eine Warteschlange, die Einträge nacheinander abarbeitet: `QUEUED` → `TRANSCRIBING` → `DONE` oder `FAILED`.
 4. Fortschritt über den Whisper-Callback in den Eintrag und die Benachrichtigung schreiben. Längere Nachrichten laufen in überlappenden 10-Sekunden-Fenstern; der erkannte Text erscheint als Live-Vorschau im Eintrag, während der fertige Text aus denselben Fenstern zusammengesetzt wird.
 5. Robustheit: Beim App-Start Einträge, die in `TRANSCRIBING` hängen geblieben sind (Prozess beendet), zurück auf `QUEUED` setzen und neu starten.

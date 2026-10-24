@@ -19,6 +19,9 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 - Inkognito-Player für die lokale Audiodatei (WhatsApp erhält keine Wiedergabe-Info)
 - Verlauf mit Volltextsuche (FTS), Labels, Kopieren, Teilen, Löschen
 - Aufbewahrungsfristen für Audio und Transkript, tägliche Bereinigung
+- Benachrichtigungen für Download- und Transkriptionsfortschritt; ein eigener
+  Onboarding-Schritt erklärt vor der Systemabfrage, wofür sie gebraucht werden und dass die
+  App auch ohne sie funktioniert
 - Dunkles Theme als Standard, helles Theme optional
 - Optionale App-Sperre (Biometrie; Ein- und Ausschalten bestätigen, nach jeder Rückkehr aus
   dem Hintergrund erneut entsperren) und Bildschirmfoto-Schutz

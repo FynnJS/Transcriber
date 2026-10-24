@@ -73,8 +73,12 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 
 ## 5. Notification-Berechtigung
 
+- [ ] Android 13+ mit gelöschten App-Daten starten → vor dem Systemdialog erscheint der Erklärungsbildschirm mit Fortschritt, Modelldownload und Freiwilligkeit.
+- [ ] **Ohne Benachrichtigungen weiter** → kein Systemdialog, es geht direkt zum Modell-Onboarding bzw. Verlauf; App beenden und neu starten → der Erklärungsbildschirm erscheint nicht erneut.
+- [ ] App-Daten erneut löschen, App starten, **Benachrichtigungen erlauben** → erst jetzt erscheint der Systemdialog; danach startet der Modell-Onboarding-Schritt, und Zurück führt nicht auf den Erklärungsbildschirm.
+- [ ] Android 12 und älter → kein Erklärungsbildschirm und keine Abfrage, Benachrichtigungen sind von Anfang an aktiv.
 - [ ] Einstellungen → Apps → Transcriber → Benachrichtigungen **aus**; App-Daten löschen, damit die Abfrage erneut erscheint.
-- [ ] App starten → Berechtigungsdialog → **Don't allow**.
+- [ ] App starten → Erklärungsbildschirm → **Benachrichtigungen erlauben** → im Systemdialog **Don't allow**.
 - [ ] Nachricht teilen → Transkription läuft trotzdem durch, Fortschritt ist im Overlay sichtbar, kein Absturz.
 - [ ] Während der Transkription App verlassen → Dienst läuft weiter, kommt nach Rückkehr zum Ergebnis.
 - [ ] Berechtigung nachträglich erteilen → nächste Transkription zeigt Fortschritts-Notification (inkl. Dateiname, ohne Transkriptinhalt).

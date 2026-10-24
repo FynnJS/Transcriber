@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -30,6 +29,7 @@ import dev.fynnjs.transcriber.service.TranscriptionService
 import dev.fynnjs.transcriber.ui.components.AppLockGate
 import dev.fynnjs.transcriber.ui.screens.detail.DetailScreen
 import dev.fynnjs.transcriber.ui.screens.history.HistoryScreen
+import dev.fynnjs.transcriber.ui.screens.onboarding.NotificationOnboardingScreen
 import dev.fynnjs.transcriber.ui.screens.onboarding.OnboardingScreen
 import dev.fynnjs.transcriber.ui.screens.privacy.PrivacyScreen
 import dev.fynnjs.transcriber.ui.screens.settings.SettingsScreen
@@ -47,10 +47,6 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var historyRepository: HistoryRepository
 
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { /* Denial is handled in the UI; transcription still works. */ }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val initialSettings = runBlocking { settingsRepository.current() }
@@ -58,7 +54,10 @@ class MainActivity : FragmentActivity() {
         applySecureFlag(initialSettings.secureScreen)
 
         setContent {
-            val startDestination = remember { initialRoute(modelRepository) }
+            val contentDestination = remember { initialRoute(modelRepository) }
+            val initialDestination = remember {
+                startDestination(contentDestination, notificationOnboardingNeeded())
+            }
             val settings by settingsRepository.settings
                 .collectAsStateWithLifecycle(initialValue = initialSettings)
 
@@ -69,7 +68,17 @@ class MainActivity : FragmentActivity() {
             TranscriberTheme(darkTheme = settings.theme == ThemeMode.DARK) {
                 AppLockGate(enabled = settings.appLock) {
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = startDestination) {
+                    NavHost(navController = navController, startDestination = initialDestination) {
+                        composable(Routes.NOTIFICATIONS) {
+                            NotificationOnboardingScreen(
+                                onFinished = {
+                                    markNotificationOnboardingShown()
+                                    navController.navigate(contentDestination) {
+                                        popUpTo(Routes.NOTIFICATIONS) { inclusive = true }
+                                    }
+                                },
+                            )
+                        }
                         composable(Routes.ONBOARDING) {
                             OnboardingScreen(
                                 onFinished = {
@@ -110,7 +119,6 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        requestNotificationPermissionOnce()
         resumeQueueIfNeeded()
     }
 
@@ -122,18 +130,23 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun requestNotificationPermissionOnce() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val granted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED
-        if (granted) return
+    private fun notificationOnboardingNeeded(): Boolean =
+        notificationOnboardingNeeded(
+            sdkInt = Build.VERSION.SDK_INT,
+            permissionGranted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED,
+            alreadyShown = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(KEY_NOTIFICATION_PROMPTED, false),
+        )
 
-        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_NOTIFICATION_PROMPTED, false)) return
-        prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPTED, true).apply()
-        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    private fun markNotificationOnboardingShown() {
+        // The key name predates the explainer screen; its value is kept so an update does not
+        // prompt users again who already answered the old, unexplained dialog.
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+            .putBoolean(KEY_NOTIFICATION_PROMPTED, true)
+            .apply()
     }
 
     private fun resumeQueueIfNeeded() {
@@ -159,7 +172,23 @@ class MainActivity : FragmentActivity() {
 internal fun initialRoute(modelRepository: ModelRepository): String =
     if (WhisperModel.entries.any { modelRepository.isReady(it) }) Routes.HISTORY else Routes.ONBOARDING
 
+/**
+ * Android 13 and newer ask for the notification permission at runtime. The explainer runs once
+ * before that dialog; older versions grant it without a prompt and a granted permission needs no
+ * explanation.
+ */
+internal fun notificationOnboardingNeeded(
+    sdkInt: Int,
+    permissionGranted: Boolean,
+    alreadyShown: Boolean,
+): Boolean = sdkInt >= Build.VERSION_CODES.TIRAMISU && !permissionGranted && !alreadyShown
+
+/** Runs the explainer in front of the model onboarding, so no dialog interrupts the download. */
+internal fun startDestination(contentDestination: String, notificationsNeeded: Boolean): String =
+    if (notificationsNeeded) Routes.NOTIFICATIONS else contentDestination
+
 object Routes {
+    const val NOTIFICATIONS = "notifications"
     const val ONBOARDING = "onboarding"
     const val HISTORY = "history"
     const val DETAIL_ARG = "entryId"

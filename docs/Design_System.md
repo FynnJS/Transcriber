@@ -21,6 +21,13 @@ der Waveform verwendet, nicht als Flächenfarbe in der App.
 Das Onboarding zeigt das vollständige Logo als 104-dp-Kachel mit `extraLarge`-Radius
 (32 dp) über dem Titel; die Kachel ersetzt dort die frühere Icon-Illustration.
 
+Der Benachrichtigungs-Onboarding-Schritt nutzt dieselbe Abstandsfolge, aber statt der
+Logo-Kachel ein rundes Badge in `primaryContainer` (104 dp, 44-dp-Icon). Darunter stehen
+Titel (`headlineMedium`, damit das lange Einzelwort auch auf schmalen Geräten einzeilig
+bleibt), Untertitel (`bodyLarge`, `onSurfaceVariant`) und drei Erklärzeilen im Muster
+Icon + `titleSmall` + `bodySmall`; die Aktionen sind ein gefüllter Primär- und ein
+sekundärer Outlined-Button über die volle Breite.
+
 ## Farbschemata
 
 ### Dunkel (Standard)
