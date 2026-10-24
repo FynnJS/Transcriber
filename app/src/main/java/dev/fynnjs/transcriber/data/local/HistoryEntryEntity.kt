@@ -26,4 +26,5 @@ data class HistoryEntryEntity(
     val errorMessage: String?,
     val label: String?,
     val progress: Int,
+    val partialTranscript: String? = null,
 )

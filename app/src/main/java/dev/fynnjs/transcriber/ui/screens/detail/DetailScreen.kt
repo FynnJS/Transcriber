@@ -307,11 +307,14 @@ fun DetailScreen(
 
             // The empty state only belongs to finished entries: while an entry is queued or
             // still transcribing, there is no result yet and a failure is explained above.
-            if (transcriptSection(current.status, current.hasTranscript) != TranscriptSection.Hidden) {
+            // During a run the growing live preview takes precedence over an older transcript.
+            val shownTranscript = current.displayedTranscript
+            if (transcriptSection(current.status, !shownTranscript.isNullOrBlank()) != TranscriptSection.Hidden) {
                 Spacer(Modifier.height(20.dp))
                 TranscriptArea(
                     status = current.status,
-                    transcript = current.transcript,
+                    transcript = shownTranscript,
+                    live = current.isLivePreview,
                 )
             }
 
@@ -506,6 +509,7 @@ internal fun transcriptSection(
 internal fun TranscriptArea(
     status: TranscriptionStatus,
     transcript: String?,
+    live: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val section = transcriptSection(status, hasTranscript = !transcript.isNullOrBlank())
@@ -525,13 +529,22 @@ internal fun TranscriptArea(
         ) {
             Column(Modifier.padding(16.dp)) {
                 when (section) {
-                    TranscriptSection.Transcript ->
+                    TranscriptSection.Transcript -> {
                         SelectionContainer {
                             Text(
                                 text = transcript.orEmpty(),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
+                        if (live) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(R.string.transcript_live_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
 
                     TranscriptSection.NoText -> {
                         Text(

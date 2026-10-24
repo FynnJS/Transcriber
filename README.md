@@ -10,6 +10,10 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
   Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
   Deutsch)
+- Live-Vorschau: bei längeren Nachrichten wächst das Transkript schon während der
+  Transkription mit (überlappende 10-Sekunden-Fenster); der fertige Text entsteht aus
+  denselben Fenstern, springt am Ende nicht um und bereinigt doppelte Wörter und falsche
+  Satzzeichen an den Fenstergrenzen
 - Modell je Nachricht in der Detailansicht wählbar – ein fehlendes Modell wird dort direkt
   heruntergeladen, danach startet die Transkription von selbst
 - Inkognito-Player für die lokale Audiodatei (WhatsApp erhält keine Wiedergabe-Info)
@@ -41,8 +45,9 @@ app/src/main/cpp/ CMake + JNI-Brücke zu third_party/whisper.cpp
 
 Ablauf: `ShareReceiverActivity` kopiert den Stream in den app-privaten Speicher, berechnet
 den SHA-256 (Duplikaterkennung), legt einen `HistoryEntry` an und startet den
-`TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es an
-whisper.cpp. Fortschritt und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
+`TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es in
+überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang). Fortschritt,
+Live-Vorschau und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
 
 Details zu Farben, Typografie und Komponenten: [docs/Design_System.md](docs/Design_System.md).
 

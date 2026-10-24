@@ -130,7 +130,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 1. `TranscriptionService` als Foreground-Service mit Benachrichtigungskanal. Den passenden `foregroundServiceType` für das gewählte `targetSdk` festlegen: ab Android 15 mediaProcessing, darunter dataSync (der Typ wird beim Start des Service per SDK-Version gewählt), und samt passender Berechtigung im Manifest deklarieren.
 2. `POST_NOTIFICATIONS` (Android 13 und höher) beim ersten Start anfragen und die Verweigerung sauber behandeln (Service läuft trotzdem, nur ohne sichtbare Benachrichtigung bei neueren Versionen: Hinweis im UI).
 3. Eine Warteschlange, die Einträge nacheinander abarbeitet: `QUEUED` → `TRANSCRIBING` → `DONE` oder `FAILED`.
-4. Fortschritt über den Whisper-Callback in den Eintrag und die Benachrichtigung schreiben.
+4. Fortschritt über den Whisper-Callback in den Eintrag und die Benachrichtigung schreiben. Längere Nachrichten laufen in überlappenden 10-Sekunden-Fenstern; der erkannte Text erscheint als Live-Vorschau im Eintrag, während der fertige Text aus denselben Fenstern zusammengesetzt wird.
 5. Robustheit: Beim App-Start Einträge, die in `TRANSCRIBING` hängen geblieben sind (Prozess beendet), zurück auf `QUEUED` setzen und neu starten.
 6. Leeres oder stilles Ergebnis als eigenen Zustand behandeln ("Kein Text erkannt").
 

@@ -56,7 +56,7 @@
     <string name="detail_label_remove">Label entfernen</string>
     <string name="detail_no_text">Kein Text erkannt</string>
     <string name="detail_no_text_hint">Die Aufnahme ist zu leise, zu kurz oder enthält nur Geräusche.</string>
-    <string name="detail_transcript_pending">Das Transkript erscheint hier, sobald die Transkription abgeschlossen ist.</string>
+    <string name="detail_transcript_pending">Das Transkript erscheint hier, sobald die ersten Wörter erkannt sind.</string>
     <string name="detail_model_picker">Modell für diese Nachricht</string>
     <string name="detail_error_title">Transkription fehlgeschlagen</string>
     <string name="detail_audio_expired">Die Audiodatei wurde nach der Aufbewahrungsfrist gelöscht.</string>
@@ -66,6 +66,7 @@
     <string name="detail_created_at">Geteilt am %1$s</string>
     <string name="detail_model_info">%1$s · %2$s</string>
     <string name="detail_transcript">Transkript</string>
+    <string name="transcript_live_hint">Live-Vorschau – der Text wird noch vervollständigt.</string>
     <string name="detail_actions">Aktionen</string>
 
     <!-- Overlay -->

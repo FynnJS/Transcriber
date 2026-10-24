@@ -186,6 +186,7 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
         jfloatArray samples,
         jstring language,
         jint threads,
+        jint audio_context_frames,
         jobject listener) {
     auto * handle = from_handle(handle_ptr);
     if (handle == nullptr || handle->ctx == nullptr || samples == nullptr) {
@@ -232,6 +233,9 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
     params.single_segment = false;
     params.suppress_blank = true;
     params.n_threads = static_cast<int>(threads);
+    // Short live-preview windows must shrink the encoder context, otherwise every window pays
+    // for the full 30 s encoder pass. 0 keeps whisper's default.
+    params.audio_ctx = static_cast<int>(audio_context_frames);
     // "auto" makes whisper detect the language and then transcribe. Setting
     // params.detect_language instead would return right after detection with an
     // empty result, and a null language would leave the detection flag unused.

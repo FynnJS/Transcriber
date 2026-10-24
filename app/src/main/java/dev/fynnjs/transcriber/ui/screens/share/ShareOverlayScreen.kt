@@ -240,9 +240,18 @@ private fun ReadyContent(
     shareChooser: String,
 ) {
     val entry = state.entry
+    val shownTranscript = entry.displayedTranscript
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     var copyCount by remember { mutableIntStateOf(0) }
+    val transcriptScroll = rememberScrollState()
+
+    // Keep the newest words visible while the live preview grows.
+    LaunchedEffect(entry.partialTranscript) {
+        if (entry.isLivePreview && transcriptScroll.maxValue > 0) {
+            transcriptScroll.animateScrollTo(transcriptScroll.maxValue)
+        }
+    }
 
     LaunchedEffect(copyCount) {
         if (copyCount > 0) {
@@ -350,7 +359,7 @@ private fun ReadyContent(
             )
         }
 
-        if (entry.status == TranscriptionStatus.DONE) {
+        if (entry.status == TranscriptionStatus.DONE || !shownTranscript.isNullOrBlank()) {
             Spacer(Modifier.height(16.dp))
             Surface(
                 modifier = Modifier
@@ -359,13 +368,13 @@ private fun ReadyContent(
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
-                if (entry.hasTranscript) {
+                if (!shownTranscript.isNullOrBlank()) {
                     SelectionContainer {
                         Text(
-                            text = entry.transcript.orEmpty(),
+                            text = shownTranscript,
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
-                                .verticalScroll(rememberScrollState())
+                                .verticalScroll(transcriptScroll)
                                 .padding(12.dp),
                         )
                     }
@@ -377,6 +386,14 @@ private fun ReadyContent(
                         modifier = Modifier.padding(12.dp),
                     )
                 }
+            }
+            if (entry.isLivePreview) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.transcript_live_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 

@@ -143,6 +143,8 @@ class DetailModelSelectionTest {
 
         override suspend fun updateProgress(id: Long, progress: Int) = Unit
 
+        override suspend fun updatePartialTranscript(id: Long, text: String?) = Unit
+
         override suspend fun updateModelUsed(id: Long, model: WhisperModel) {
             modelUsed = model.id
             state.value = state.value.copy(modelUsed = model.id)

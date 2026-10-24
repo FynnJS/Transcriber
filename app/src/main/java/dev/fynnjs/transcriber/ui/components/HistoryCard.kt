@@ -37,8 +37,9 @@ fun HistoryCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val shownTranscript = entry.displayedTranscript
     val preview = when {
-        entry.hasTranscript -> entry.transcript.orEmpty()
+        !shownTranscript.isNullOrBlank() -> shownTranscript
         entry.status == TranscriptionStatus.FAILED ->
             entry.errorMessage ?: stringResource(R.string.error_generic)
 
@@ -101,7 +102,9 @@ fun HistoryCard(
             Text(
                 text = preview,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (entry.hasTranscript || entry.status == TranscriptionStatus.FAILED) {
+                color = if (!shownTranscript.isNullOrBlank() ||
+                    entry.status == TranscriptionStatus.FAILED
+                ) {
                     MaterialTheme.colorScheme.onSurface
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant

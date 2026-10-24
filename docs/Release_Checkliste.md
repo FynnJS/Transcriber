@@ -80,6 +80,10 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 ## 6. Zusätzlich sinnvoll
 
 - [ ] Echte WhatsApp-Sprachnachricht (OGG/Opus, mehrere Minuten) teilen → Dauer, Fortschritt, Transkriptqualität.
+- [ ] Nachricht mit mehr als 15 Sekunden teilen → im Overlay und in der Detailansicht wächst der Text während der Transkription, der Hinweis „Live-Vorschau …“ ist sichtbar, am Ende steht derselbe Text ohne Sprung, ohne doppelte Wörter und ohne falsche Satzzeichen an den Fenstergrenzen.
+- [ ] Kurze Nachricht (unter 15 Sekunden) teilen → Verhalten wie bisher: Text erscheint erst mit dem Abschluss.
+- [ ] Fehlgeschlagene Transkription erneut starten und während der Live-Vorschau abbrechen (App beenden) → Eintrag steht wieder auf „In Warteschlange“, keine halbe Vorschau bleibt sichtbar.
+- [ ] Update von der vorherigen App-Version mit gefülltem Verlauf installieren → Datenbank-Migration läuft, alle Einträge und ihre Transkripte bleiben erhalten.
 - [ ] Einstellungen → **Bildschirmfotos verhindern**: Screenshot über die Systemfunktion → schwarzes Bild; wieder ausschalten → Screenshot funktioniert.
 - [ ] App-Icon auf Homescreen und in den App-Infos prüfen: neues Logo, runde Maske schneidet die Sprechblase nicht an.
 - [ ] Modellwechsel Small ↔ Base auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).

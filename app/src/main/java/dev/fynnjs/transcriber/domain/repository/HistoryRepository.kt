@@ -33,6 +33,9 @@ interface HistoryRepository {
 
     suspend fun updateProgress(id: Long, progress: Int)
 
+    /** Stores the live preview of a running transcription; only applies to `TRANSCRIBING`. */
+    suspend fun updatePartialTranscript(id: Long, text: String?)
+
     /** Chooses the model for the next transcription of this entry. */
     suspend fun updateModelUsed(id: Long, model: WhisperModel)
 

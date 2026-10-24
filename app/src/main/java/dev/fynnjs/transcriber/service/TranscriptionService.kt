@@ -124,15 +124,19 @@ class TranscriptionService : Service() {
                 modelFile = modelRepository.modelFile(model),
                 audio = pcm,
                 language = language.code,
-            ) { progress ->
-                if (progress - lastPersisted >= 5 || progress == 100) {
-                    lastPersisted = progress
-                    scope.launch {
-                        historyRepository.updateProgress(entry.id, progress)
-                        updateNotification(progress, entry.sourceFileName)
+                onProgress = { progress ->
+                    if (progress - lastPersisted >= 5 || progress == 100) {
+                        lastPersisted = progress
+                        scope.launch {
+                            historyRepository.updateProgress(entry.id, progress)
+                            updateNotification(progress, entry.sourceFileName)
+                        }
                     }
-                }
-            }
+                },
+                onPartial = { partial ->
+                    historyRepository.updatePartialTranscript(entry.id, partial)
+                },
+            )
 
             historyRepository.complete(
                 id = entry.id,

@@ -132,7 +132,7 @@ class HistoryRepositoryTest {
     }
 
     @Test
-    fun `stuck transcriptions are queued again`() = runTest {
+    fun `partial transcript is only kept while transcribing`() = runTest {
         val id = repository.insert(
             entry(
                 createdAt = 1000,
@@ -142,10 +142,48 @@ class HistoryRepositoryTest {
             ),
         )
 
+        repository.updatePartialTranscript(id, "Erste Worte")
+        assertEquals("Erste Worte", repository.get(id)?.partialTranscript)
+
+        repository.complete(
+            id,
+            transcript = "Erste Worte und mehr",
+            language = "de",
+            model = dev.fynnjs.transcriber.domain.model.WhisperModel.SMALL,
+            durationMs = 1234,
+        )
+
+        val finished = repository.get(id)
+        assertNull(finished?.partialTranscript)
+        assertEquals("Erste Worte und mehr", finished?.transcript)
+    }
+
+    @Test
+    fun `partial transcript is ignored for finished entries`() = runTest {
+        val id = repository.insert(entry(createdAt = 1000, hash = "a", transcript = "Fertig"))
+
+        repository.updatePartialTranscript(id, "Zu spät")
+
+        assertNull(repository.get(id)?.partialTranscript)
+    }
+
+    @Test
+    fun `stuck transcriptions are queued again`() = runTest {
+        val id = repository.insert(
+            entry(
+                createdAt = 1000,
+                hash = "a",
+                transcript = null,
+                status = TranscriptionStatus.TRANSCRIBING,
+            ),
+        )
+        repository.updatePartialTranscript(id, "Halb fertig")
+
         val count = repository.resetStuckEntries()
 
         assertEquals(1, count)
         assertEquals(TranscriptionStatus.QUEUED, repository.get(id)?.status)
+        assertNull(repository.get(id)?.partialTranscript)
     }
 
     private fun audioFile(name: String): File {

@@ -140,6 +140,10 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   `QUEUED` oder `TRANSCRIBING` ist, steht dort ein Hinweis auf das ausstehende Transkript,
   und bei `FAILED` ohne Text erklärt allein der Fehlerzustand den Eintrag. Ein erneuter
   Versuch zeigt damit nie „Kein Text erkannt“, während die Transkription noch läuft.
+  Während `TRANSCRIBING` wächst das Transkript als Live-Vorschau mit; ein Hinweis darunter
+  („Live-Vorschau – der Text wird noch vervollständigt.“) grenzt ihn vom fertigen Text ab.
+  Eine ältere Fassung bleibt sichtbar, bis das erste Fenster erkannt ist, danach gewinnt
+  die Vorschau. Kopieren und Teilen beziehen sich weiterhin nur auf den fertigen Text.
 - **Buttons**: primär gefüllt (`primary`), sekundär `outlined` mit `outline`,
   Textbutton für tertiäre Aktionen. Mindesthöhe 48 dp, Radius `full`; bei großen
   Schriftgrößen wachsen sie mit dem Text, statt ihn abzuschneiden.
@@ -149,7 +153,9 @@ Visuelles Grundmaß: 8 dp für Touch-Ziele, Mindestgröße 48 dp.
   „In der App öffnen“ als `FlowRow` (rechtsbündig). Auf schmalen Displays bricht die
   Aktionszeile um, statt den Chip zu quetschen; „Schließen“ bleibt voll breit. Passt der
   Inhalt nicht auf den Bildschirm (kleine Displays, große Schrift), scrollt der Inhalt
-  unter dem Griff; der Griff bleibt oben stehen.
+  unter dem Griff; der Griff bleibt oben stehen. Das Transkript-Feld erscheint schon
+  während der Transkription, sobald die Live-Vorschau Text enthält; Fortschritt und
+  Live-Hinweis stehen darüber bzw. darunter.
 - **Leerzustand**: zentriert, Icon in `primaryContainer`-Kreis (64 dp), Titel `titleMedium`,
   Text `bodyMedium` in `onSurfaceVariant`, optional Primärbutton.
 - **Fehlerzustand**: `errorContainer`-Karte mit Icon, Titel, Meldung und Aktion

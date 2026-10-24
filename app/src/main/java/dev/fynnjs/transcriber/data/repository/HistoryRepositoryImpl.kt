@@ -50,6 +50,10 @@ class HistoryRepositoryImpl @Inject constructor(
         dao.updateProgress(id, progress.coerceIn(0, 100))
     }
 
+    override suspend fun updatePartialTranscript(id: Long, text: String?) {
+        dao.updatePartialTranscript(id, text?.trim()?.takeIf { it.isNotEmpty() })
+    }
+
     override suspend fun updateModelUsed(id: Long, model: WhisperModel) {
         dao.updateModelUsed(id, model.id)
     }
@@ -138,6 +142,7 @@ class HistoryRepositoryImpl @Inject constructor(
         audioPath = audioPath,
         audioHash = audioHash,
         transcript = transcript,
+        partialTranscript = partialTranscript,
         language = language,
         modelUsed = modelUsed,
         status = runCatching { TranscriptionStatus.valueOf(status) }
@@ -155,6 +160,7 @@ class HistoryRepositoryImpl @Inject constructor(
         audioPath = audioPath,
         audioHash = audioHash,
         transcript = transcript,
+        partialTranscript = partialTranscript,
         language = language,
         modelUsed = modelUsed,
         status = status.name,

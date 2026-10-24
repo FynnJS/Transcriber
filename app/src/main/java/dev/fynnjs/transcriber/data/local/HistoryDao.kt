@@ -35,11 +35,26 @@ interface HistoryDao {
     @Insert
     suspend fun insert(entry: HistoryEntryEntity): Long
 
-    @Query("UPDATE history_entries SET status = :status, errorMessage = :errorMessage, progress = 0 WHERE id = :id")
+    @Query(
+        """
+        UPDATE history_entries
+        SET status = :status, errorMessage = :errorMessage, progress = 0, partialTranscript = NULL
+        WHERE id = :id
+        """,
+    )
     suspend fun updateStatus(id: Long, status: String, errorMessage: String?)
 
     @Query("UPDATE history_entries SET progress = :progress WHERE id = :id")
     suspend fun updateProgress(id: Long, progress: Int)
+
+    /** Writes the live preview, but only while the entry is still being transcribed. */
+    @Query(
+        """
+        UPDATE history_entries SET partialTranscript = :text
+        WHERE id = :id AND status = 'TRANSCRIBING'
+        """,
+    )
+    suspend fun updatePartialTranscript(id: Long, text: String?)
 
     @Query("UPDATE history_entries SET modelUsed = :modelUsed WHERE id = :id")
     suspend fun updateModelUsed(id: Long, modelUsed: String)
@@ -47,8 +62,9 @@ interface HistoryDao {
     @Query(
         """
         UPDATE history_entries
-        SET transcript = :transcript, language = :language, modelUsed = :modelUsed,
-            durationMs = :durationMs, status = 'DONE', errorMessage = NULL, progress = 100
+        SET transcript = :transcript, partialTranscript = NULL, language = :language,
+            modelUsed = :modelUsed, durationMs = :durationMs, status = 'DONE',
+            errorMessage = NULL, progress = 100
         WHERE id = :id
         """,
     )
@@ -60,7 +76,13 @@ interface HistoryDao {
     @Query("UPDATE history_entries SET audioPath = :audioPath WHERE id = :id")
     suspend fun updateAudioPath(id: Long, audioPath: String?)
 
-    @Query("UPDATE history_entries SET status = 'QUEUED', errorMessage = NULL, progress = 0 WHERE status = 'TRANSCRIBING'")
+    @Query(
+        """
+        UPDATE history_entries
+        SET status = 'QUEUED', errorMessage = NULL, progress = 0, partialTranscript = NULL
+        WHERE status = 'TRANSCRIBING'
+        """,
+    )
     suspend fun resetStuckEntries(): Int
 
     @Query(

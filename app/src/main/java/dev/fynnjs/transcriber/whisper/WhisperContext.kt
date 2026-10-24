@@ -20,10 +20,18 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
 
     private val cancelRequested = AtomicBoolean(false)
 
+    /** True once [cancel] was requested; the chunked loop stops before the next window. */
+    val isCancelled: Boolean get() = cancelRequested.get()
+
+    /**
+     * Transcribes [samples] in one pass. [audioContextFrames] shrinks whisper's encoder context
+     * to the given window (0 keeps the default 30 s), which is what makes short windows cheap.
+     */
     fun transcribe(
         samples: FloatArray,
         language: String,
         threads: Int,
+        audioContextFrames: Int = 0,
         onProgress: (Int) -> Unit,
     ): WhisperResult {
         check(handle != 0L) { "Whisper context is closed" }
@@ -37,7 +45,7 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
             }
         }
         val output = try {
-            nativeTranscribe(handle, samples, language, threads, listener)
+            nativeTranscribe(handle, samples, language, threads, audioContextFrames, listener)
         } catch (e: UnsatisfiedLinkError) {
             throw WhisperException("Whisper native library is not available", e)
         }
@@ -109,6 +117,7 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
             samples: FloatArray,
             language: String,
             threads: Int,
+            audioContextFrames: Int,
             listener: ProgressListener?,
         ): Array<String>?
     }
