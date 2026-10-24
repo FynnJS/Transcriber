@@ -35,6 +35,11 @@ $ANDROID_HOME/build-tools/<version>/apksigner sign \
 
 Installieren: `adb install -r transcriber-release.apk`
 
+Für das reguläre Release reicht ein Tag `vX.Y.Z` auf `main`: `.github/workflows/release.yml`
+läuft die Unit-Tests, baut die signierte APK (Secrets `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`) und veröffentlicht sie
+als GitHub-Release. Die Schritte oben bleiben für lokale Prüf-Builds.
+
 ## 2. Vorbereitung auf dem Gerät
 
 - [ ] Gerät entsperrt, mindestens ein Fingerabdruck/Gesicht registriert (Einstellungen → Sicherheit).
@@ -95,7 +100,7 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 - [ ] Modellwechsel Small ↔ Base auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).
 - [ ] Einstellungen bei 200 % Systemschrift und ca. 320 dp Breite prüfen → Aufbewahrungszeilen bleiben lesbar und brechen nicht mitten im Wort um.
 - [ ] App-Sprache/Theme umschalten und App neu starten → Einstellungen bleiben erhalten.
-- [ ] Flugmodus: Transkription funktioniert weiterhin (nur der Modelldownload braucht Netz).
+- [ ] Flugmodus: Transkription funktioniert weiterhin (nur Modelldownload und Update-Check brauchen Netz).
 
 ## 7. Release-Build prüfen
 
@@ -103,3 +108,17 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 - [ ] `apksigner verify --print-certs` bestätigt die eigene Signatur (nicht den Debug-Key).
 - [ ] Keine Debug-Marker: `aapt2 dump badging` zeigt `application-debuggable` nicht.
 - [ ] Backup-Regeln greifen: Einstellungen → Apps → Transcriber → „Daten sichern" deaktiviert bzw. ein Backup enthält weder Datenbank noch Audio.
+
+## 8. In-App-Update
+
+Vorbereitung: Eine ältere signierte Version installieren, dann einen Tag `vX.Y.Z` pushen und
+den Release-Workflow abwarten.
+
+- [ ] Workflow-Lauf grün; das GitHub-Release enthält genau eine APK `transcriber-X.Y.Z-arm64-v8a.apk` und generierte Notes.
+- [ ] App starten → nach spätestens einem Tag zeigt sie den Update-Dialog mit Version, Größe und Notes.
+- [ ] **Später** → Dialog schließt, App neu starten → dieselbe Version wird nicht erneut angeboten; „Prüfen“ in den Einstellungen findet sie weiterhin.
+- [ ] **Herunterladen** zeigt Fortschritt; danach **Installieren** öffnet den Android-Installer (ggf. mit „Unbekannte Apps“-Rückfrage) und das Update installiert sich über die alte Version.
+- [ ] Nach der Installation: Verlauf, Einstellungen und Modelle sind unverändert; die Einstellungen zeigen die neue Version.
+- [ ] Installation abbrechen → App läuft weiter, kein Datenverlust; die Suche lässt sich manuell wiederholen.
+- [ ] Flugmodus und **Prüfen** → verständliche Fehlermeldung statt Absturz.
+- [ ] Debug-Build angetippt: Update-Download endet mit „Datei passt nicht zu dieser App“ (eigene Application-ID).

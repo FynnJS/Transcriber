@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -59,6 +60,7 @@ import dev.fynnjs.transcriber.domain.model.ModelState
 import dev.fynnjs.transcriber.domain.model.ThemeMode
 import dev.fynnjs.transcriber.domain.model.TranscriptionLanguage
 import dev.fynnjs.transcriber.domain.model.TranscriptRetention
+import dev.fynnjs.transcriber.domain.model.UpdateState
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.ui.components.InfoRow
 import dev.fynnjs.transcriber.ui.components.PrimaryButton
@@ -83,6 +85,7 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val modelStates by viewModel.modelStates.collectAsStateWithLifecycle()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
+    val updateState by viewModel.updateState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -355,6 +358,20 @@ fun SettingsScreen(
                     icon = Icons.Outlined.Info,
                     title = stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
                 )
+                InfoRow(
+                    icon = Icons.Outlined.SystemUpdate,
+                    title = stringResource(R.string.settings_update_check),
+                    subtitle = updateSubtitle(updateState),
+                    trailing = {
+                        TextButton(
+                            onClick = viewModel::checkForUpdates,
+                            enabled = updateState !is UpdateState.Checking &&
+                                updateState !is UpdateState.Downloading,
+                        ) {
+                            Text(stringResource(R.string.settings_update_action))
+                        }
+                    },
+                )
                 Text(
                     text = stringResource(R.string.settings_privacy_note),
                     style = MaterialTheme.typography.bodySmall,
@@ -560,6 +577,21 @@ private fun TranscriptRetention.labelRes(): Int = when (this) {
     TranscriptRetention.DAYS_30 -> R.string.retention_30_days
     TranscriptRetention.DAYS_90 -> R.string.retention_90_days
     TranscriptRetention.NEVER -> R.string.retention_never
+}
+
+@Composable
+private fun updateSubtitle(state: UpdateState): String = when (state) {
+    UpdateState.Idle -> stringResource(R.string.settings_update_current, BuildConfig.VERSION_NAME)
+    UpdateState.Checking -> stringResource(R.string.settings_update_checking)
+    UpdateState.UpToDate ->
+        stringResource(R.string.settings_update_up_to_date, BuildConfig.VERSION_NAME)
+
+    is UpdateState.Available ->
+        stringResource(R.string.settings_update_available, state.update.versionName)
+
+    is UpdateState.Downloading -> stringResource(R.string.settings_update_downloading, state.percent)
+    is UpdateState.Ready -> stringResource(R.string.settings_update_ready)
+    is UpdateState.Failed -> stringResource(R.string.settings_update_failed)
 }
 
 private data class RetentionDialog(

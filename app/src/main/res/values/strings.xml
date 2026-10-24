@@ -134,12 +134,21 @@
     <string name="settings_delete_all">Alles löschen</string>
     <string name="settings_delete_all_confirm_title">Alle Daten löschen?</string>
     <string name="settings_delete_all_confirm_text">Alle Transkripte und Audiodateien werden endgültig gelöscht. Das Modell bleibt erhalten.</string>
-    <string name="settings_privacy_note">Alles bleibt auf diesem Gerät. Netzwerk wird nur für den Modelldownload genutzt.</string>
+    <string name="settings_privacy_note">Alles bleibt auf diesem Gerät. Netzwerk wird nur für Modelldownload und Updates genutzt.</string>
     <string name="settings_incognito_title">Inkognito-Wiedergabe</string>
     <string name="settings_incognito_text">Audio läuft ausschließlich im eigenen Player. WhatsApp erfährt nichts von der Wiedergabe, Absender sehen keinen blauen Mikrofon-Haken.</string>
     <string name="settings_notifications_hint">Benachrichtigungen sind deaktiviert. Der Fortschritt ist dann nur in der App sichtbar.</string>
     <string name="settings_about">Über Transcriber</string>
     <string name="settings_version">Version %1$s</string>
+    <string name="settings_update_check">Nach Updates suchen</string>
+    <string name="settings_update_current">Installiert: %1$s</string>
+    <string name="settings_update_checking">Suche läuft …</string>
+    <string name="settings_update_up_to_date">Aktuell – installiert: %1$s</string>
+    <string name="settings_update_available">Version %1$s verfügbar</string>
+    <string name="settings_update_downloading">Download läuft … %1$d %%</string>
+    <string name="settings_update_ready">Bereit zur Installation</string>
+    <string name="settings_update_failed">Suche fehlgeschlagen</string>
+    <string name="settings_update_action">Prüfen</string>
     <string name="settings_privacy_policy">Datenschutzerklärung</string>
     <string name="settings_data_deleted">Alle Daten gelöscht</string>
     <string name="settings_model_deleted">Modell gelöscht</string>
@@ -202,7 +211,7 @@
     <string name="privacy_title">Datenschutz</string>
     <string name="privacy_body">Transcriber verarbeitet Sprachnachrichten ausschließlich auf diesem Gerät. Audio und Transkripte liegen im app-privaten Speicher und werden weder an WhatsApp noch an andere Dienste gesendet.
 
-Die App nutzt das Netzwerk nur, um das Sprachmodell von whisper.cpp herunterzuladen. Es gibt keine Analyse-, Werbe- oder Crash-SDKs. Backups und Geräteübertragung schließen Datenbank und Audioordner aus.
+Die App nutzt das Netzwerk nur, um das Sprachmodell von whisper.cpp herunterzuladen und Updates aus den eigenen GitHub-Releases zu prüfen und zu laden. Es gibt keine Analyse-, Werbe- oder Crash-SDKs. Backups und Geräteübertragung schließen Datenbank und Audioordner aus.
 
 Der Player spielt nur die lokale Audiodatei ab. WhatsApp erhält dadurch keine Wiedergabebestätigung; Absender sehen keinen blauen Mikrofon-Haken.
 
@@ -210,6 +219,27 @@ Du kannst Audiodateien und Transkripte jederzeit löschen oder automatische Aufb
 
     <!-- Permissions -->
     <string name="permission_notifications_denied">Ohne Benachrichtigungen siehst du den Fortschritt nur in der App.</string>
+
+    <!-- Updates -->
+    <string name="update_available_title">Update verfügbar</string>
+    <string name="update_available_text">Version %1$s ist verfügbar – installiert ist %2$s.</string>
+    <string name="update_size">Download: %1$s</string>
+    <string name="update_notes_title">Änderungen</string>
+    <string name="update_download">Herunterladen</string>
+    <string name="update_downloading_title">Update wird geladen</string>
+    <string name="update_downloading">Download läuft … %1$d %%</string>
+    <string name="update_ready_title">Update bereit</string>
+    <string name="update_ready_text">Version %1$s kann jetzt installiert werden. Android fragt vor der Installation noch einmal nach.</string>
+    <string name="update_install">Installieren</string>
+    <string name="update_later">Später</string>
+    <string name="update_failed_title">Update fehlgeschlagen</string>
+    <string name="update_failed_network">GitHub ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="update_failed_missing_apk">Zum neuesten Release gehört keine APK. Bitte später erneut prüfen.</string>
+    <string name="update_failed_invalid_apk">Die Datei passt nicht zu dieser App. Bitte lade das Release manuell von GitHub.</string>
+    <string name="update_failed_check">Die Suche nach Updates ist fehlgeschlagen.</string>
+    <string name="update_retry_download">Erneut herunterladen</string>
+    <string name="update_retry_check">Erneut suchen</string>
+    <string name="update_close">Schließen</string>
 
     <!-- Model download -->
     <string name="model_download_channel">Modell-Download</string>

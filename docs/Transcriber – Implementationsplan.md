@@ -167,8 +167,8 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 14. Schritt 12: Datenschutz und Härtung
 
 1. `allowBackup` ausschalten bzw. Datenbank und Audioordner in den Backup- und Datenübertragungsregeln ausschließen.
-2. Keine Analyse- oder Tracking-Bibliotheken, keine Netzwerkzugriffe außer dem Modell-Download.
-3. Berechtigungen minimal halten (`INTERNET`, `POST_NOTIFICATIONS`, Foreground-Service-Berechtigung).
+2. Keine Analyse- oder Tracking-Bibliotheken, keine Netzwerkzugriffe außer dem Modell-Download und dem Update-Check samt APK-Download von den eigenen GitHub-Releases.
+3. Berechtigungen minimal halten (`INTERNET`, `POST_NOTIFICATIONS`, `REQUEST_INSTALL_PACKAGES`, Foreground-Service-Berechtigung).
 4. Entscheidung: App-Sperre per Biometrie und Bildschirmfoto-Schutz (`FLAG_SECURE`) für den Verlauf. Umsetzung: `FLAG_SECURE` und Biometrie-Sperre, jeweils als Schalter in den Einstellungen.
 5. Datenschutzerklärung schreiben (nötig für eine Veröffentlichung).
 
@@ -193,8 +193,10 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 
 1. Release-Build mit R8; Keep-Regeln für die JNI-Klassen nicht vergessen.
 2. Signierung mit eigenem Keystore, der niemals ins Repository kommt (nur lokal oder in sicheren Secrets).
-3. Versionierung (`versionName` / `versionCode`), Pull Request von `develop` nach `main`, Tag `v1.0.0`.
-4. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
+3. Versionierung (`versionName` / `versionCode`): Der Tag `vX.Y.Z` bestimmt beides (`-PversionName`, abgeleiteter `versionCode`), Pull Request von `develop` nach `main`, dann Tag `v1.0.0`.
+4. CI/CD: `.github/workflows/release.yml` testet, baut die signierte APK aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und veröffentlicht sie beim Tag-Push als GitHub-Release.
+5. In-App-Update: höchstens ein Check pro Tag gegen die GitHub-Releases-API, Dialog, Download in den Cache mit Prüfung von Paketname und Signatur und Übergabe an den Android-Installer; „Später“ merkt sich die Version, die Einstellungen bieten eine manuelle Suche.
+6. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
 
 ## 18. Geklärte Punkte
 

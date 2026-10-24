@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -21,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import dev.fynnjs.transcriber.domain.model.ThemeMode
+import dev.fynnjs.transcriber.domain.model.UpdateState
 import dev.fynnjs.transcriber.domain.model.WhisperModel
 import dev.fynnjs.transcriber.domain.repository.HistoryRepository
 import dev.fynnjs.transcriber.domain.repository.ModelRepository
@@ -33,7 +35,10 @@ import dev.fynnjs.transcriber.ui.screens.onboarding.NotificationOnboardingScreen
 import dev.fynnjs.transcriber.ui.screens.onboarding.OnboardingScreen
 import dev.fynnjs.transcriber.ui.screens.privacy.PrivacyScreen
 import dev.fynnjs.transcriber.ui.screens.settings.SettingsScreen
+import dev.fynnjs.transcriber.ui.screens.update.UpdateDialog
+import dev.fynnjs.transcriber.ui.screens.update.UpdateViewModel
 import dev.fynnjs.transcriber.ui.theme.TranscriberTheme
+import dev.fynnjs.transcriber.ui.util.installApk
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -47,6 +52,8 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var historyRepository: HistoryRepository
 
+    private val updateViewModel: UpdateViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val initialSettings = runBlocking { settingsRepository.current() }
@@ -54,6 +61,7 @@ class MainActivity : FragmentActivity() {
         applySecureFlag(initialSettings.secureScreen)
 
         setContent {
+            val updateState by updateViewModel.state.collectAsStateWithLifecycle()
             val contentDestination = remember { initialRoute(modelRepository) }
             val initialDestination = remember {
                 startDestination(contentDestination, notificationOnboardingNeeded())
@@ -115,10 +123,25 @@ class MainActivity : FragmentActivity() {
                             PrivacyScreen(onBack = { navController.popBackStack() })
                         }
                     }
+
+                    UpdateDialog(
+                        state = updateState,
+                        installedVersion = BuildConfig.VERSION_NAME,
+                        onDownload = updateViewModel::download,
+                        onInstall = {
+                            val ready = updateState as? UpdateState.Ready
+                            if (ready != null) installApk(this@MainActivity, ready.file)
+                            updateViewModel.dismiss()
+                        },
+                        onSkip = updateViewModel::skip,
+                        onRetryCheck = updateViewModel::checkManually,
+                        onDismiss = updateViewModel::dismiss,
+                    )
                 }
             }
         }
 
+        updateViewModel.checkAutomatically()
         resumeQueueIfNeeded()
     }
 

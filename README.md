@@ -2,7 +2,8 @@
 
 Android-App, die WhatsApp-Sprachnachrichten über die Teilen-Funktion entgegennimmt und
 **vollständig offline** auf dem Gerät transkribiert (whisper.cpp). Keine Cloud, kein
-Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
+Tracking, kein Netzwerk außer dem einmaligen Modelldownload und der Update-Prüfung über
+GitHub.
 
 ## Funktionen
 
@@ -22,6 +23,8 @@ Tracking, kein Netzwerk außer dem einmaligen Modelldownload.
 - Benachrichtigungen für Download- und Transkriptionsfortschritt; ein eigener
   Onboarding-Schritt erklärt vor der Systemabfrage, wofür sie gebraucht werden und dass die
   App auch ohne sie funktioniert
+- In-App-Update über GitHub: stiller Check beim Start (höchstens täglich), Dialog mit
+  Versionshinweis, Download in der App und Übergabe an den Android-Installer
 - Dunkles Theme als Standard, helles Theme optional
 - Optionale App-Sperre (Biometrie; Ein- und Ausschalten bestätigen, nach jeder Rückkehr aus
   dem Hintergrund erneut entsperren) und Bildschirmfoto-Schutz
@@ -63,6 +66,7 @@ Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22. Gradle 9.8.0 kom
 git submodule update --init --recursive
 ./gradlew :app:assembleDebug          # Debug (arm64-v8a + x86_64)
 ./gradlew :app:assembleRelease        # Release (arm64-v8a, R8)
+./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release-Workflow
 ./gradlew test                        # Unit-Tests
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
@@ -94,6 +98,27 @@ bestehende Nutzer nicht mehr zurück auf den Einführungsbildschirm.
 
 Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 
+## Releases und Updates
+
+Ein Push des Tags `vX.Y.Z` startet `.github/workflows/release.yml`: Der Workflow prüft das
+Tag-Format, läuft die Unit-Tests, baut die signierte Release-APK und veröffentlicht sie als
+Asset des GitHub-Releases samt generierten Release-Notes. Der Tag bestimmt die Version
+(`v1.2.3` → `versionName` 1.2.3, `versionCode` 10203); lokal setzt `-PversionName=1.2.3`
+dieselbe Version.
+
+Der Workflow braucht die Repository-Secrets `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und `RELEASE_KEY_PASSWORD`. Fehlt eines, bricht
+der Job ab, statt eine unsignierte APK zu veröffentlichen; die Signing-Dateien werden im
+Anschluss wieder gelöscht.
+
+Die App prüft beim Start höchstens einmal pro Tag
+`api.github.com/repos/FynnJS/Transcriber/releases/latest` und bietet eine neuere Version als
+Dialog an. Nach Bestätigung lädt sie die APK in den Cache, prüft Paketname und Signatur gegen
+die installierte App und übergibt sie an den Android-Installer. „Später“ blendet die
+tägliche Erinnerung für diese Version aus; die manuelle Suche in den Einstellungen ignoriert
+das Tagesintervall und bietet sie weiterhin an. Updates greifen nur in der Release-Variante,
+weil Debug-Builds eine eigene Application-ID haben.
+
 ## Branch-Workflow
 
 - `develop` ist der Standard-Branch, `main` ist geschützt (nur Pull Requests).
@@ -115,8 +140,9 @@ Doku-Pflege ist Pflicht, nicht optional.
 ## Datenschutz
 
 Alle Audiodaten und Transkripte bleiben im app-privaten Speicher. `INTERNET` wird nur für
-den Modelldownload verwendet. Keine Analyse-, Werbe- oder Crash-SDKs. `allowBackup` ist
-deaktiviert, Datenbank und Audioordner sind von Backup und Geräteübertragung ausgeschlossen.
+den Modelldownload und den Update-Check samt APK-Download von den eigenen GitHub-Releases
+verwendet. Keine Analyse-, Werbe- oder Crash-SDKs. `allowBackup` ist deaktiviert, Datenbank
+und Audioordner sind von Backup und Geräteübertragung ausgeschlossen.
 
 Die optionale App-Sperre schützt ausschließlich den Verlauf samt Detailansicht und
 Einstellungen. Das Teilen-Overlay (`ShareReceiverActivity`) bleibt bewusst ungeschützt,

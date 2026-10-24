@@ -44,7 +44,8 @@
   synchrones Lesen der Theme-Einstellung beim Start).
 - Room-Schemas werden exportiert (`app/schemas`) und bei Änderungen als Migration gepflegt.
 - Design-Tokens nur aus `ui/theme/` beziehen; keine Dynamic Colors.
-- Keine neuen Netzwerkzugriffe außer dem Modelldownload. Keine Analytics/Crash-SDKs.
+- Keine neuen Netzwerkzugriffe außer dem Modelldownload und dem Update-Check samt
+  APK-Download von den eigenen GitHub-Releases. Keine Analytics/Crash-SDKs.
 
 ## Build & Tests
 
@@ -53,6 +54,10 @@
 ./gradlew testDebugUnitTest
 ./gradlew connectedDebugAndroidTest
 ```
+
+Release: Ein Tag `vX.Y.Z` löst `.github/workflows/release.yml` aus (Unit-Tests, signierte
+APK, GitHub-Release). Lokal baut `./gradlew :app:assembleRelease -PversionName=X.Y.Z` dieselbe
+Version.
 
 `JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert).
 `gradle/gradle-daemon-jvm.properties` ist lokale Konfiguration, ist in `.gitignore` und wird
@@ -64,6 +69,8 @@ Submodule unter `third_party/whisper.cpp` (gepinnt); `*.bin`-Modelle sind nie ei
 ## Sicherheit
 
 - Keystores, `local.properties` und Modell-Dateien niemals committen.
+- Update-APKs stammen ausschließlich aus den eigenen GitHub-Releases; vor der Installation
+  werden Paketname und Signatur geprüft.
 - Audio/Transkripte bleiben im app-privaten Speicher, keine Logs mit Transkriptinhalten.
 - `FLAG_SECURE` und App-Sperre respektieren die Nutzereinstellung. Die App-Sperre schützt
   bewusst nur den Verlauf; das Teilen-Overlay (`ShareReceiverActivity`) bleibt ungeschützt.
