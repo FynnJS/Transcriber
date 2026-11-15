@@ -193,8 +193,8 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 
 1. Release-Build mit R8; Keep-Regeln für die JNI-Klassen nicht vergessen.
 2. Signierung mit eigenem Keystore, der niemals ins Repository kommt (nur lokal oder in sicheren Secrets).
-3. Versionierung (`versionName` / `versionCode`): Der Tag `vX.Y.Z` bestimmt beides (`-PversionName`, abgeleiteter `versionCode`), Pull Request von `develop` nach `main`, dann Tag `v1.0.0`.
-4. CI/CD: `.github/workflows/release.yml` testet, baut die signierte APK aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und veröffentlicht sie beim Tag-Push als GitHub-Release.
+3. Versionierung (`versionName` / `versionCode`): `-PversionName=X.Y.Z` bestimmt beides (der `versionCode` wird abgeleitet), Pull Request von `develop` nach `main`, dann lokal bauen und Tag `v1.0.0` anlegen.
+4. CI/CD: Releases entstehen lokal (`-PversionName`, `gh release create`); ein Tag-Push startet keinen Workflow mehr. `.github/workflows/release.yml` bleibt als manueller Lauf (`workflow_dispatch` mit Versionseingabe) für Unit-Tests, signierten Build aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und Veröffentlichung.
 5. In-App-Update: höchstens ein Check pro Tag gegen die GitHub-Releases-API, Dialog, Download in den Cache mit Prüfung von Paketname und Signatur und Übergabe an den Android-Installer; „Später“ merkt sich die Version, die Einstellungen bieten eine manuelle Suche.
 6. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
 

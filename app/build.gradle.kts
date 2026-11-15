@@ -9,7 +9,7 @@ plugins {
 }
 
 /**
- * Der Release-Tag bestimmt die Version: `v1.2.3` wird zu versionName `1.2.3` und versionCode
+ * `-PversionName` bestimmt die Version: `-PversionName=1.2.3` wird zu versionName `1.2.3` und
  * `10203`. So steigt der versionCode mit jedem Patch und Android akzeptiert das Update.
  */
 fun semanticVersionCode(versionName: String): Int {

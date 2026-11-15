@@ -66,7 +66,7 @@ Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22. Gradle 9.8.0 kom
 git submodule update --init --recursive
 ./gradlew :app:assembleDebug          # Debug (arm64-v8a + x86_64)
 ./gradlew :app:assembleRelease        # Release (arm64-v8a, R8)
-./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release-Workflow
+./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release
 ./gradlew test                        # Unit-Tests
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
@@ -100,11 +100,20 @@ Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 
 ## Releases und Updates
 
-Ein Push des Tags `vX.Y.Z` startet `.github/workflows/release.yml`: Der Workflow prüft das
-Tag-Format, läuft die Unit-Tests, baut die signierte Release-APK und veröffentlicht sie als
-Asset des GitHub-Releases samt generierten Release-Notes. Der Tag bestimmt die Version
-(`v1.2.3` → `versionName` 1.2.3, `versionCode` 10203); lokal setzt `-PversionName=1.2.3`
-dieselbe Version.
+Releases entstehen lokal – ein Tag-Push startet keinen Workflow mehr:
+
+```bash
+./gradlew :app:assembleRelease -PversionName=X.Y.Z
+cp app/build/outputs/apk/release/app-release.apk transcriber-X.Y.Z-arm64-v8a.apk
+gh release create vX.Y.Z transcriber-X.Y.Z-arm64-v8a.apk \
+  --title "Transcriber X.Y.Z" --generate-notes
+```
+
+Die Version bestimmt `versionName` und `versionCode` (`1.2.3` → 10203).
+
+Alternativ lässt sich `.github/workflows/release.yml` manuell starten (Actions → Release →
+Run workflow, Branch `main`, Versionseingabe): Er prüft das Versionsformat, läuft die
+Unit-Tests, baut die signierte APK und veröffentlicht sie am ausgewählten Commit.
 
 Der Workflow braucht die Repository-Secrets `RELEASE_KEYSTORE_BASE64`,
 `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und `RELEASE_KEY_PASSWORD`. Fehlt eines, bricht
@@ -123,7 +132,7 @@ weil Debug-Builds eine eigene Application-ID haben.
 
 - `develop` ist der Standard-Branch, `main` ist geschützt (nur Pull Requests).
 - Feature-Branches `feature/<name>` von `develop`, Merge per PR nach `develop`.
-- Release: PR von `develop` nach `main` plus Tag `vX.Y.Z`.
+- Release: PR von `develop` nach `main`, Tag `vX.Y.Z` und lokaler Release-Build.
 - Commit-Nachrichten: Conventional Commits, **auf Englisch**, Stichpunkte im Body,
   z. B. `feat(settings): Add audio retention selection`.
 - Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und

@@ -35,10 +35,19 @@ $ANDROID_HOME/build-tools/<version>/apksigner sign \
 
 Installieren: `adb install -r transcriber-release.apk`
 
-Für das reguläre Release reicht ein Tag `vX.Y.Z` auf `main`: `.github/workflows/release.yml`
-läuft die Unit-Tests, baut die signierte APK (Secrets `RELEASE_KEYSTORE_BASE64`,
-`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`) und veröffentlicht sie
-als GitHub-Release. Die Schritte oben bleiben für lokale Prüf-Builds.
+Für das reguläre Release baust du auf `main` selbst:
+
+```bash
+./gradlew :app:assembleRelease -PversionName=X.Y.Z
+cp app/build/outputs/apk/release/app-release.apk transcriber-X.Y.Z-arm64-v8a.apk
+gh release create vX.Y.Z transcriber-X.Y.Z-arm64-v8a.apk \
+  --title "Transcriber X.Y.Z" --generate-notes
+```
+
+Ein Tag-Push startet keinen Workflow mehr. `.github/workflows/release.yml` läuft nur noch
+manuell (Actions → Release → Run workflow, Branch `main`, Versionseingabe) und braucht dafür
+die Secrets `RELEASE_KEYSTORE_BASE64`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und
+`RELEASE_KEY_PASSWORD`. Die Schritte oben bleiben für lokale Prüf-Builds.
 
 ## 2. Vorbereitung auf dem Gerät
 
@@ -111,10 +120,10 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 
 ## 8. In-App-Update
 
-Vorbereitung: Eine ältere signierte Version installieren, dann einen Tag `vX.Y.Z` pushen und
-den Release-Workflow abwarten.
+Vorbereitung: Eine ältere signierte Version installieren, dann `vX.Y.Z` lokal bauen und mit
+`gh release create` veröffentlichen.
 
-- [ ] Workflow-Lauf grün; das GitHub-Release enthält genau eine APK `transcriber-X.Y.Z-arm64-v8a.apk` und generierte Notes.
+- [ ] Das GitHub-Release enthält genau eine APK `transcriber-X.Y.Z-arm64-v8a.apk` und generierte Notes.
 - [ ] App starten → nach spätestens einem Tag zeigt sie den Update-Dialog mit Version, Größe und Notes.
 - [ ] **Später** → Dialog schließt, App neu starten → dieselbe Version wird nicht erneut angeboten; „Prüfen“ in den Einstellungen findet sie weiterhin.
 - [ ] **Herunterladen** zeigt Fortschritt; danach **Installieren** öffnet den Android-Installer (ggf. mit „Unbekannte Apps“-Rückfrage) und das Update installiert sich über die alte Version.
