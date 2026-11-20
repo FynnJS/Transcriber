@@ -77,6 +77,14 @@ Modellen, schreibt Laufzeit und Text je Modell nach `adb logcat -s WhisperCompar
 `model-comparison.txt` im externen App-Ordner; fehlt ein Modell, wird der Lauf übersprungen.
 Die Laufzeiten eines Emulators sind kein Geräte-Benchmark.
 
+Der arm64-Build nutzt die Android-CPU-Backends von ggml: Statt die App auf eine
+`-march`-Baseline festzulegen, entsteht pro ARM-Feature-Level eine eigene
+Backend-Bibliothek (armv8.0 bis armv9.2 mit dotprod, fp16, i8mm, SVE/SME), und
+`whisper_jni.cpp` lädt beim ersten Modell-Load die passende Variante. Aktuelle Geräte
+profitieren so von den SIMD-Pfaden, ohne dass ältere arm64-Geräte eine höhere Baseline
+brauchen. Die Backends werden per Pfad geöffnet, deshalb muss
+`jniLibs.useLegacyPackaging` aktiv bleiben; die x86_64-Debug-ABI bleibt statisch.
+
 `local.properties` mit `sdk.dir` wird nicht eingecheckt. Auch
 `gradle/gradle-daemon-jvm.properties` bleibt lokal (ignoriert); der Gradle-Daemon nutzt die
 installierte JDK ≥ 17. Der Release-Keystore liegt ausschließlich lokal bzw. in sicheren

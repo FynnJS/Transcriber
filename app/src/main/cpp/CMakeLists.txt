@@ -14,7 +14,8 @@ if(NOT EXISTS "${WHISPER_DIR}/include/whisper.h")
     message(FATAL_ERROR "whisper.cpp submodule missing at ${WHISPER_DIR}. Run: git submodule update --init --recursive")
 endif()
 
-# Build whisper.cpp as static libraries and link them into one JNI library.
+# Link whisper.cpp into the JNI library. arm64 switches to shared ggml libraries so the
+# CPU backend can be picked at runtime (see below); x86_64 stays static.
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(WHISPER_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(WHISPER_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -27,15 +28,30 @@ set(GGML_CPU_ALL_VARIANTS OFF CACHE BOOL "" FORCE)
 
 # GGML_NATIVE is off because the build is cross-compiled, which leaves ggml on its
 # scalar baseline. For the x86_64 test ABI (emulator) every supported CPU has AVX2,
-# so enable the vector kernels explicitly; arm64 keeps its baseline NEON path.
+# so enable the vector kernels explicitly.
 if(ANDROID_ABI STREQUAL "x86_64")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx -mavx2 -mfma -mf16c")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx -mavx2 -mfma -mf16c")
 endif()
 
+# arm64 phones cover several instruction set levels. A single -march=armv8.2 build with
+# dotprod/fp16 would be faster on current devices but crashes on older armv8.0 ones, which
+# minSdk 26 still includes. ggml therefore builds one CPU backend per level and the loader
+# picks the best one the device supports. That needs dynamically loaded backends, which in
+# turn need shared ggml libraries.
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+    set(GGML_BACKEND_DL ON CACHE BOOL "" FORCE)
+    set(GGML_CPU_ALL_VARIANTS ON CACHE BOOL "" FORCE)
+endif()
+
 add_subdirectory("${WHISPER_DIR}" "${CMAKE_BINARY_DIR}/whisper.cpp")
 
 add_library(transcriber_whisper SHARED whisper_jni.cpp)
+
+if(GGML_BACKEND_DL)
+    target_compile_definitions(transcriber_whisper PRIVATE TRANSCRIBER_GGML_BACKEND_DL=1)
+endif()
 
 target_include_directories(transcriber_whisper PRIVATE
     "${WHISPER_DIR}/include"
@@ -56,4 +72,5 @@ target_link_libraries(transcriber_whisper
     whisper
     log
     android
+    dl
 )

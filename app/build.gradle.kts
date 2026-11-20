@@ -86,6 +86,12 @@ android {
     }
 
     packaging {
+        // ggml loads its arm64 CPU backend libraries by path at runtime; compressed libraries
+        // inside the APK cannot be opened that way.
+        jniLibs.useLegacyPackaging = true
+        // whisper.cpp builds its Parakeet API as a separate shared library; the app only
+        // transcribes with whisper and does not need it.
+        jniLibs.excludes += "**/libparakeet.so"
         resources.excludes += setOf(
             "/META-INF/{AL2.0,LGPL2.1}",
             "/META-INF/LICENSE*",
