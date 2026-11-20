@@ -52,7 +52,7 @@ die Secrets `RELEASE_KEYSTORE_BASE64`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_AL
 ## 2. Vorbereitung auf dem Gerät
 
 - [ ] Gerät entsperrt, mindestens ein Fingerabdruck/Gesicht registriert (Einstellungen → Sicherheit).
-- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base), mit beiden Modellen zusammen 239 MB.
+- [ ] Genug Speicher: Modell 182 MB (Small), optional 57 MB (Base) und 548 MB (large-v3-turbo), mit allen Modellen zusammen rund 787 MB.
 - [ ] WLAN aktiv, App einmal starten, Onboarding abschließen, Modell laden lassen (optional „Auch Base-Modell laden“ aktivieren → beide Modelle werden geladen, der Hinweistext und die Schaltfläche zeigen dann zusammen 239 MB).
 - [ ] Nach dem Onboarding in den Einstellungen prüfen: Base steht als „Bereit“, falls die Option gewählt wurde.
 - [ ] Eine Sprachnachricht über WhatsApp teilen → Transkript erscheint im Overlay (Basisfall).
@@ -106,7 +106,8 @@ Einstellungen → Aufbewahrung (Audio löschen / Transkript löschen).
 - [ ] Update von der vorherigen App-Version mit gefülltem Verlauf installieren → Datenbank-Migration läuft, alle Einträge und ihre Transkripte bleiben erhalten.
 - [ ] Einstellungen → **Bildschirmfotos verhindern**: Screenshot über die Systemfunktion → schwarzes Bild; wieder ausschalten → Screenshot funktioniert.
 - [ ] App-Icon auf Homescreen und in den App-Infos prüfen: neues Logo, runde Maske schneidet die Sprechblase nicht an.
-- [ ] Modellwechsel Small ↔ Base auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).
+- [ ] Modellwechsel Small ↔ Base ↔ large-v3-turbo auf dem Gerät (Download, Umschalten, neue Transkription, alter Eintrag behält sein Modell).
+- [ ] large-v3-turbo in den Einstellungen herunterladen (nur nach ausdrücklichem Tippen, ca. 548 MB), als aktives Modell wählen und eine deutsche Nachricht transkribieren → Transkript erscheint, der alte Eintrag behält sein bisheriges Modell.
 - [ ] Einstellungen bei 200 % Systemschrift und ca. 320 dp Breite prüfen → Aufbewahrungszeilen bleiben lesbar und brechen nicht mitten im Wort um.
 - [ ] App-Sprache/Theme umschalten und App neu starten → Einstellungen bleiben erhalten.
 - [ ] Flugmodus: Transkription funktioniert weiterhin (nur Modelldownload und Update-Check brauchen Netz).
