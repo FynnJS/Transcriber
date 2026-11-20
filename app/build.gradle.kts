@@ -19,7 +19,7 @@ fun semanticVersionCode(versionName: String): Int {
         parts.getOrElse(2) { 0 }
 }
 
-val appVersionName = providers.gradleProperty("versionName").orNull ?: "1.0.0"
+val appVersionName = providers.gradleProperty("versionName").orNull ?: "1.1.0"
 
 android {
     namespace = "dev.fynnjs.transcriber"
