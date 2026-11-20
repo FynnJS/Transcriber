@@ -23,15 +23,10 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
     /** True once [cancel] was requested; the chunked loop stops before the next window. */
     val isCancelled: Boolean get() = cancelRequested.get()
 
-    /**
-     * Transcribes [samples] in one pass. [audioContextFrames] shrinks whisper's encoder context
-     * to the given window (0 keeps the default 30 s), which is what makes short windows cheap.
-     */
     fun transcribe(
         samples: FloatArray,
         language: String,
         threads: Int,
-        audioContextFrames: Int = 0,
         onProgress: (Int) -> Unit,
     ): WhisperResult {
         check(handle != 0L) { "Whisper context is closed" }
@@ -45,7 +40,7 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
             }
         }
         val output = try {
-            nativeTranscribe(handle, samples, language, threads, audioContextFrames, listener)
+            nativeTranscribe(handle, samples, language, threads, listener)
         } catch (e: UnsatisfiedLinkError) {
             throw WhisperException("Whisper native library is not available", e)
         }
@@ -57,6 +52,15 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
             throw WhisperException("Malformed transcription result")
         }
         return WhisperResult(text = output[0].trim(), language = output[1])
+    }
+
+    /**
+     * Clears a cancel request from an earlier transcription. The service cancels the context
+     * when it is destroyed, so without this reset the next run would abort before its first
+     * window and the entry would fall back to QUEUED forever.
+     */
+    fun resetCancel() {
+        cancelRequested.set(false)
     }
 
     /** Requests an abort; safe to call from another thread. */
@@ -117,7 +121,6 @@ class WhisperContext private constructor(private var handle: Long) : Closeable {
             samples: FloatArray,
             language: String,
             threads: Int,
-            audioContextFrames: Int,
             listener: ProgressListener?,
         ): Array<String>?
     }

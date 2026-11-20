@@ -9,8 +9,9 @@ GitHub.
 
 - Teilen-Ziel für `audio/*`: schlankes Bottom-Sheet-Overlay, eine Nachricht pro Vorgang
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
-  Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
-  Deutsch)
+  Schnell-Option, *large-v3-turbo* als Genauigkeits-Option für Deutsch; *base* optional
+  schon im Onboarding mitladbar, *large-v3-turbo* in den Einstellungen; Spracherkennung
+  automatisch oder Deutsch)
 - Live-Vorschau: bei längeren Nachrichten wächst das Transkript schon während der
   Transkription mit (überlappende 10-Sekunden-Fenster); der fertige Text entsteht aus
   denselben Fenstern, springt am Ende nicht um und bereinigt doppelte Wörter und falsche
@@ -52,8 +53,9 @@ app/src/main/cpp/ CMake + JNI-Brücke zu third_party/whisper.cpp
 Ablauf: `ShareReceiverActivity` kopiert den Stream in den app-privaten Speicher, berechnet
 den SHA-256 (Duplikaterkennung), legt einen `HistoryEntry` an und startet den
 `TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es in
-überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang). Fortschritt,
-Live-Vorschau und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
+überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang); jedes Fenster
+rechnet mit whisper.cpp' eigenem 30-s-Encoder-Kontext. Fortschritt, Live-Vorschau und Ergebnis
+landen in Room, das Overlay beobachtet den Eintrag.
 
 Details zu Farben, Typografie und Komponenten: [docs/Design_System.md](docs/Design_System.md).
 
@@ -66,10 +68,23 @@ Voraussetzungen: JDK 17+, Android SDK 37, NDK 28.2, CMake 3.22. Gradle 9.8.0 kom
 git submodule update --init --recursive
 ./gradlew :app:assembleDebug          # Debug (arm64-v8a + x86_64)
 ./gradlew :app:assembleRelease        # Release (arm64-v8a, R8)
-./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release-Workflow
+./gradlew :app:assembleRelease -PversionName=1.2.3   # Version wie im Release
 ./gradlew test                        # Unit-Tests
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
+
+`WhisperModelComparisonTest` transkribiert eine deutsche Testansage mit allen installierten
+Modellen, schreibt Laufzeit und Text je Modell nach `adb logcat -s WhisperCompare` und in
+`model-comparison.txt` im externen App-Ordner; fehlt ein Modell, wird der Lauf übersprungen.
+Die Laufzeiten eines Emulators sind kein Geräte-Benchmark.
+
+Der arm64-Build nutzt die Android-CPU-Backends von ggml: Statt die App auf eine
+`-march`-Baseline festzulegen, entsteht pro ARM-Feature-Level eine eigene
+Backend-Bibliothek (armv8.0 bis armv9.2 mit dotprod, fp16, i8mm, SVE/SME), und
+`whisper_jni.cpp` lädt beim ersten Modell-Load die passende Variante. Aktuelle Geräte
+profitieren so von den SIMD-Pfaden, ohne dass ältere arm64-Geräte eine höhere Baseline
+brauchen. Die Backends werden per Pfad geöffnet, deshalb muss
+`jniLibs.useLegacyPackaging` aktiv bleiben; die x86_64-Debug-ABI bleibt statisch.
 
 `local.properties` mit `sdk.dir` wird nicht eingecheckt. Auch
 `gradle/gradle-daemon-jvm.properties` bleibt lokal (ignoriert); der Gradle-Daemon nutzt die
@@ -85,10 +100,27 @@ whisper.cpp-Repository (Hugging Face) geladen und per SHA-256 geprüft:
 | --- | --- | --- | --- |
 | base | `ggml-base-q5_1.bin` | 59.707.625 B | `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898` |
 | small | `ggml-small-q5_1.bin` | 190.085.487 B | `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb` |
+| large-v3-turbo | `ggml-large-v3-turbo-q5_0.bin` | 574.041.195 B | `394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2` |
 
 Vor jedem Download prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen
 Fehler; gleichzeitig gestartete Downloads (etwa *small* und *base* im Onboarding) legen den
 Modellordner kollisionsfrei an.
+
+*large-v3-turbo* ist eine optionale Zusatzvariante im selben Download- und Auswahl-Fluss:
+multilinguales large-v3 mit destilliertem 4-Schichten-Decoder, deutlich genaueres Deutsch als
+*small*, aber rund dreimal so groß und spürbar rechenintensiver. Der Standard bleibt *small*,
+damit niemand ungefragt 548 MB lädt; *large-v3-turbo* wird nur nach ausdrücklichem Tippen in
+den Einstellungen geladen.
+
+**Encoder-Kontext bleibt bei whisper.cpp' Standard (`audio_ctx = 0`, volle 30 s).** Eine
+frühere Tempo-Optimierung kürzte den Encoder-Kontext auf die Länge der jeweiligen Datei. Auf
+whisper.cpp 1.9.5 liefert das lückenhafte oder halluzinierte Transkripte („… - The - …“,
+leere sehr kurze Nachrichten), sobald sich der Encoder-Kontext zwischen zwei Aufrufen auf
+derselben Modell-Instanz ändert – und das tun sowohl die Spracherkennung als auch die
+überlappenden Fenster. Die Optimierung ist deshalb zurückgenommen: Jede Kombination aus Modell
+(*small*, *base*, *large-v3-turbo*) und Spracheinstellung (Auto, Deutsch) läuft mit dem vollen
+Kontext. Kurze Nachrichten zahlen damit die Encoder-Rechnung von 30 s Audio; eine sichere
+Verkürzung bräuchte einen eigenen Kontext pro Kontextwert oder einen Fix in whisper.cpp.
 
 Ob ein Modell bereit ist, entscheidet die Datei auf dem Gerät – nicht der letzte
 WorkManager-Eintrag. WorkManager behält die Einträge abgelöster Downloads, deshalb werden alte
@@ -100,11 +132,20 @@ Modelle gehören nie ins Repository (`*.bin` ist ignoriert).
 
 ## Releases und Updates
 
-Ein Push des Tags `vX.Y.Z` startet `.github/workflows/release.yml`: Der Workflow prüft das
-Tag-Format, läuft die Unit-Tests, baut die signierte Release-APK und veröffentlicht sie als
-Asset des GitHub-Releases samt generierten Release-Notes. Der Tag bestimmt die Version
-(`v1.2.3` → `versionName` 1.2.3, `versionCode` 10203); lokal setzt `-PversionName=1.2.3`
-dieselbe Version.
+Releases entstehen lokal – ein Tag-Push startet keinen Workflow mehr:
+
+```bash
+./gradlew :app:assembleRelease -PversionName=X.Y.Z
+cp app/build/outputs/apk/release/app-release.apk transcriber-X.Y.Z-arm64-v8a.apk
+gh release create vX.Y.Z transcriber-X.Y.Z-arm64-v8a.apk \
+  --title "Transcriber X.Y.Z" --generate-notes
+```
+
+Die Version bestimmt `versionName` und `versionCode` (`1.2.3` → 10203).
+
+Alternativ lässt sich `.github/workflows/release.yml` manuell starten (Actions → Release →
+Run workflow, Branch `main`, Versionseingabe): Er prüft das Versionsformat, läuft die
+Unit-Tests, baut die signierte APK und veröffentlicht sie am ausgewählten Commit.
 
 Der Workflow braucht die Repository-Secrets `RELEASE_KEYSTORE_BASE64`,
 `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und `RELEASE_KEY_PASSWORD`. Fehlt eines, bricht
@@ -123,7 +164,7 @@ weil Debug-Builds eine eigene Application-ID haben.
 
 - `develop` ist der Standard-Branch, `main` ist geschützt (nur Pull Requests).
 - Feature-Branches `feature/<name>` von `develop`, Merge per PR nach `develop`.
-- Release: PR von `develop` nach `main` plus Tag `vX.Y.Z`.
+- Release: PR von `develop` nach `main`, Tag `vX.Y.Z` und lokaler Release-Build.
 - Commit-Nachrichten: Conventional Commits, **auf Englisch**, Stichpunkte im Body,
   z. B. `feat(settings): Add audio retention selection`.
 - Commits nur nach ausdrücklicher Bestätigung von FynnJS oder wenn Tests die Änderung und

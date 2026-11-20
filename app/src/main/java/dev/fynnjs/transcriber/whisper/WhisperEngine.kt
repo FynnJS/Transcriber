@@ -36,6 +36,7 @@ class WhisperEngine @Inject constructor() {
         onPartial: suspend (String) -> Unit = {},
     ): WhisperResult = mutex.withLock {
         val ctx = ensureLoaded(model, modelFile)
+        ctx.resetCancel()
         withContext(Dispatchers.Default) {
             transcribeInWindows(
                 samples = audio.samples,
@@ -43,12 +44,11 @@ class WhisperEngine @Inject constructor() {
                 onProgress = onProgress,
                 onPartial = onPartial,
                 isCancelled = { ctx.isCancelled },
-                transcribeWindow = { window, windowLanguage, audioContextFrames, windowProgress ->
+                transcribeWindow = { window, windowLanguage, windowProgress ->
                     ctx.transcribe(
                         samples = window,
                         language = windowLanguage,
                         threads = WhisperContext.defaultThreadCount(),
-                        audioContextFrames = audioContextFrames,
                         onProgress = windowProgress,
                     )
                 },
@@ -76,7 +76,6 @@ class WhisperEngine @Inject constructor() {
         transcribeWindow: suspend (
             samples: FloatArray,
             language: String,
-            audioContextFrames: Int,
             onProgress: (Int) -> Unit,
         ) -> WhisperResult,
     ): WhisperResult {
@@ -101,7 +100,6 @@ class WhisperEngine @Inject constructor() {
             val result = transcribeWindow(
                 window,
                 spokenLanguage,
-                if (streaming) TranscriptChunks.audioContextFrames(chunk) else 0,
             ) { localProgress ->
                 onProgress(globalProgress(chunk, samples.size, localProgress))
             }

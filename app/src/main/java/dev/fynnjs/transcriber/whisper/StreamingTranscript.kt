@@ -21,10 +21,6 @@ internal object TranscriptChunks {
     /** Messages up to this length are transcribed in one pass, exactly as before. */
     const val SINGLE_PASS_SAMPLES = 15 * SAMPLE_RATE
 
-    /** whisper's encoder runs at 50 frames per second and its default context covers 30 s. */
-    private const val FRAMES_PER_SECOND = 50
-    private const val DEFAULT_AUDIO_CONTEXT_FRAMES = 1500
-
     fun plan(totalSamples: Int): List<AudioChunk> {
         if (totalSamples <= 0) return emptyList()
         if (totalSamples <= SINGLE_PASS_SAMPLES) return listOf(AudioChunk(0, totalSamples))
@@ -41,15 +37,6 @@ internal object TranscriptChunks {
         return chunks
     }
 
-    /**
-     * Encoder context that covers [chunk] plus one second of padding. Without this every call
-     * would run whisper's encoder over the full 30 s context and multiply the work per chunk.
-     */
-    fun audioContextFrames(chunk: AudioChunk): Int {
-        val seconds = chunk.sampleCount / SAMPLE_RATE.toDouble() + 1.0
-        return (seconds * FRAMES_PER_SECOND).toInt()
-            .coerceIn(1, DEFAULT_AUDIO_CONTEXT_FRAMES)
-    }
 }
 
 /**

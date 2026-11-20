@@ -9,7 +9,7 @@ plugins {
 }
 
 /**
- * Der Release-Tag bestimmt die Version: `v1.2.3` wird zu versionName `1.2.3` und versionCode
+ * `-PversionName` bestimmt die Version: `-PversionName=1.2.3` wird zu versionName `1.2.3` und
  * `10203`. So steigt der versionCode mit jedem Patch und Android akzeptiert das Update.
  */
 fun semanticVersionCode(versionName: String): Int {
@@ -19,7 +19,7 @@ fun semanticVersionCode(versionName: String): Int {
         parts.getOrElse(2) { 0 }
 }
 
-val appVersionName = providers.gradleProperty("versionName").orNull ?: "1.0.0"
+val appVersionName = providers.gradleProperty("versionName").orNull ?: "1.1.0"
 
 android {
     namespace = "dev.fynnjs.transcriber"
@@ -86,6 +86,12 @@ android {
     }
 
     packaging {
+        // ggml loads its arm64 CPU backend libraries by path at runtime; compressed libraries
+        // inside the APK cannot be opened that way.
+        jniLibs.useLegacyPackaging = true
+        // whisper.cpp builds its Parakeet API as a separate shared library; the app only
+        // transcribes with whisper and does not need it.
+        jniLibs.excludes += "**/libparakeet.so"
         resources.excludes += setOf(
             "/META-INF/{AL2.0,LGPL2.1}",
             "/META-INF/LICENSE*",

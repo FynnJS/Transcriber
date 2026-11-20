@@ -52,12 +52,6 @@ class StreamingTranscriptTest {
     }
 
     @Test
-    fun `encoder context follows the window length`() {
-        assertEquals(100, TranscriptChunks.audioContextFrames(AudioChunk(0, 16_000)))
-        assertEquals(550, TranscriptChunks.audioContextFrames(AudioChunk(0, 160_000)))
-    }
-
-    @Test
     fun `chunks are appended without overlap duplicates`() {
         val merged = TranscriptMerger.merge(
             accumulated = "Wir treffen uns morgen",

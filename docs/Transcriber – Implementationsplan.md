@@ -8,7 +8,7 @@ Android-App zur Transkription von WhatsApp-Sprachnachrichten · Stand: 23.10.202
 | --- | --- |
 | Zweck | Sprachnachrichten per Teilen-Funktion aus WhatsApp transkribieren, inkognito abspielen, Verlauf anzeigen |
 | Transkription | On-device mit whisper.cpp, keine Cloud |
-| Modell | *small* (quantisiert) als Standard, *base* als wählbare Schnell-Option, multilingual mit Auto-Spracherkennung (umstellbar auf Deutsch), Download beim ersten Start |
+| Modell | *small* (quantisiert) als Standard, *base* als wählbare Schnell-Option, *large-v3-turbo* als optionale Genauigkeits-Option, multilingual mit Auto-Spracherkennung (umstellbar auf Deutsch), Download beim ersten Start |
 | Eingang | Teilen-Ziel mit schlanker Overlay-Activity (Bottom-Sheet-Optik), Foreground-Service als Fallback bei längerer Verarbeitung |
 | Umfang | Genau eine Sprachnachricht pro Teilen-Vorgang |
 | Inkognito | WhatsApp erfährt von der Wiedergabe nichts, da die Datei im eigenen Player läuft (kein blauer Mikrofon-Haken beim Absender) |
@@ -78,7 +78,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 2. Volltextsuche über eine FTS-Tabelle (FTS4) auf `transcript` und `label`.
 3. DAO mit Flows: alle Einträge (nach Datum absteigend), Suche, Eintrag nach ID, Status-Updates, Löschen.
 4. `HistoryRepository` als einzige Schnittstelle für die UI und den Service.
-5. DataStore für Einstellungen: Theme, Modell (*small*/*base*), Sprache (Auto/Deutsch), Aufbewahrung Audio, Aufbewahrung Transkript.
+5. DataStore für Einstellungen: Theme, Modell (*small*/*base*/*large-v3-turbo*), Sprache (Auto/Deutsch), Aufbewahrung Audio, Aufbewahrung Transkript.
 6. Room-Schema exportieren (`exportSchema = true`), damit spätere Migrationen testbar sind.
 
 **Fertig, wenn:** Unit-Tests für DAO und Repository laufen, FTS-Suche liefert Treffer.
@@ -118,10 +118,11 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 9. Schritt 7: Modell-Verwaltung
 
 1. `ModelRepository`: Zustand pro Modell (nicht geladen, lädt, bereit, Fehler), Ablage unter `filesDir/models/`.
-2. Download der quantisierten ggml-Modelle (*small* und *base*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
+2. Download der quantisierten ggml-Modelle (*small*, *base* und optional *large-v3-turbo*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
 3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Er erscheint nur, wenn kein Modell bereit ist; vorhandene Modelldateien haben Vorrang vor älteren WorkManager-Einträgen abgelöster Downloads, damit ein früherer Fehlschlag ein fertiges Modell nicht verdeckt.
 4. In den Einstellungen: Modell wechseln, weiteres Modell laden, Modell löschen.
 5. Die `INTERNET`-Berechtigung wird nur für diesen Download genutzt (Transkription bleibt komplett offline).
+6. Encoder-Kontext: whisper.cpp rechnet immer mit seinem Standard (`audio_ctx = 0`, 30 s), auch für kurze Nachrichten. Eine frühere Verkürzung auf die Dateilänge ist zurückgenommen, weil whisper.cpp 1.9.5 bei wechselndem Kontext auf derselben Modell-Instanz lückenhafte Transkripte liefert – nachweislich auch mit *large-v3-turbo* und automatischer Spracherkennung. Alle Modell-/Sprach-Kombinationen laufen damit; Details und Begründung im README.
 
 **Fertig, wenn:** Erster Start lädt das Modell, Prüfsumme stimmt, Modellwechsel funktioniert.
 
@@ -193,8 +194,8 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 
 1. Release-Build mit R8; Keep-Regeln für die JNI-Klassen nicht vergessen.
 2. Signierung mit eigenem Keystore, der niemals ins Repository kommt (nur lokal oder in sicheren Secrets).
-3. Versionierung (`versionName` / `versionCode`): Der Tag `vX.Y.Z` bestimmt beides (`-PversionName`, abgeleiteter `versionCode`), Pull Request von `develop` nach `main`, dann Tag `v1.0.0`.
-4. CI/CD: `.github/workflows/release.yml` testet, baut die signierte APK aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und veröffentlicht sie beim Tag-Push als GitHub-Release.
+3. Versionierung (`versionName` / `versionCode`): `-PversionName=X.Y.Z` bestimmt beides (der `versionCode` wird abgeleitet), Pull Request von `develop` nach `main`, dann lokal bauen und Tag `v1.0.0` anlegen.
+4. CI/CD: Releases entstehen lokal (`-PversionName`, `gh release create`); ein Tag-Push startet keinen Workflow mehr. `.github/workflows/release.yml` bleibt als manueller Lauf (`workflow_dispatch` mit Versionseingabe) für Unit-Tests, signierten Build aus den Repository-Secrets (Keystore als Base64, Passwörter, Alias) und Veröffentlichung.
 5. In-App-Update: höchstens ein Check pro Tag gegen die GitHub-Releases-API, Dialog, Download in den Cache mit Prüfung von Paketname und Signatur und Übergabe an den Android-Installer; „Später“ merkt sich die Version, die Einstellungen bieten eine manuelle Suche.
 6. Verteilung zunächst als Test-APK oder interner Test, danach optional Play Store (Store-Eintrag, Screenshots in Dunkel und Hell, Datenschutzerklärung).
 

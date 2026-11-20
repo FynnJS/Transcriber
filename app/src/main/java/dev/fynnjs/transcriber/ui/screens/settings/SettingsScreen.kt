@@ -427,10 +427,10 @@ private fun ModelRow(
                 }
             }
             Text(
-                text = if (model == WhisperModel.SMALL) {
-                    stringResource(R.string.settings_model_small_desc)
-                } else {
-                    stringResource(R.string.settings_model_base_desc)
+                text = when (model) {
+                    WhisperModel.SMALL -> stringResource(R.string.settings_model_small_desc)
+                    WhisperModel.BASE -> stringResource(R.string.settings_model_base_desc)
+                    WhisperModel.LARGE_V3_TURBO -> stringResource(R.string.settings_model_turbo_desc)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

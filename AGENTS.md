@@ -55,9 +55,11 @@
 ./gradlew connectedDebugAndroidTest
 ```
 
-Release: Ein Tag `vX.Y.Z` löst `.github/workflows/release.yml` aus (Unit-Tests, signierte
-APK, GitHub-Release). Lokal baut `./gradlew :app:assembleRelease -PversionName=X.Y.Z` dieselbe
-Version.
+Release: `./gradlew :app:assembleRelease -PversionName=X.Y.Z` baut die signierte APK lokal,
+`gh release create vX.Y.Z …` veröffentlicht sie. `.github/workflows/release.yml` startet nur
+noch manuell (`workflow_dispatch` mit Versionseingabe, Branch `main`); Tag-Pushes lösen keinen
+Lauf mehr aus. Er braucht weiterhin die Secrets `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` und `RELEASE_KEY_PASSWORD`.
 
 `JAVA_HOME` muss auf ein JDK ≥ 17 zeigen (Android Studio JBR funktioniert).
 `gradle/gradle-daemon-jvm.properties` ist lokale Konfiguration, ist in `.gitignore` und wird

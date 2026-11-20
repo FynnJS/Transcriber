@@ -2,10 +2,15 @@
 #include <android/log.h>
 #include <atomic>
 #include <cstring>
+#include <dlfcn.h>
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include "whisper.h"
+#if defined(TRANSCRIBER_GGML_BACKEND_DL)
+#include "ggml-backend.h"
+#endif
 
 #define LOG_TAG "WhisperJNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -123,6 +128,40 @@ bool abort_callback(void * user_data) {
     return handle != nullptr && handle->canceled.load();
 }
 
+#if defined(TRANSCRIBER_GGML_BACKEND_DL)
+/**
+ * ggml ships one CPU backend per arm64 instruction set level and expects the app to load
+ * them. It only searches the executable directory and the working directory, neither of
+ * which is the app's native library folder, so use the folder this library was loaded from.
+ */
+void load_dynamic_backends() {
+    static std::once_flag once;
+    std::call_once(once, [] {
+        Dl_info info{};
+        if (dladdr(reinterpret_cast<void *>(&load_dynamic_backends), &info) != 0 &&
+                info.dli_fname != nullptr) {
+            const std::string path(info.dli_fname);
+            const auto slash = path.find_last_of('/');
+            if (slash != std::string::npos && slash > 0) {
+                const std::string dir = path.substr(0, slash);
+                ggml_backend_load_all_from_path(dir.c_str());
+                if (ggml_backend_dev_count() == 0) {
+                    // The folder can be an APK path when the libraries are not extracted.
+                    ggml_backend_load_all();
+                }
+                LOGI("Loaded %d backend devices from %s",
+                     static_cast<int>(ggml_backend_dev_count()), dir.c_str());
+                return;
+            }
+        }
+        LOGE("Could not locate the native library folder, using default backend paths");
+        ggml_backend_load_all();
+    });
+}
+#else
+void load_dynamic_backends() {}
+#endif
+
 }  // namespace
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -135,6 +174,8 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeInit(
     if (path == nullptr) {
         return 0;
     }
+
+    load_dynamic_backends();
 
     auto * handle = new TranscriberContext();
     handle->vm = java_vm(env);
@@ -186,7 +227,6 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
         jfloatArray samples,
         jstring language,
         jint threads,
-        jint audio_context_frames,
         jobject listener) {
     auto * handle = from_handle(handle_ptr);
     if (handle == nullptr || handle->ctx == nullptr || samples == nullptr) {
@@ -233,9 +273,10 @@ Java_dev_fynnjs_transcriber_whisper_WhisperContext_nativeTranscribe(
     params.single_segment = false;
     params.suppress_blank = true;
     params.n_threads = static_cast<int>(threads);
-    // Short live-preview windows must shrink the encoder context, otherwise every window pays
-    // for the full 30 s encoder pass. 0 keeps whisper's default.
-    params.audio_ctx = static_cast<int>(audio_context_frames);
+    // audio_ctx stays at whisper's default on purpose: whisper.cpp 1.9.5 returns empty or
+    // hallucinated transcripts as soon as the encoder context differs between two calls on the
+    // same context, and both language detection and the preview windows do exactly that.
+    params.audio_ctx = 0;
     // "auto" makes whisper detect the language and then transcribe. Setting
     // params.detect_language instead would return right after detection with an
     // empty result, and a null language would leave the detection flag unused.
