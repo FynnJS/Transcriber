@@ -1,7 +1,9 @@
 package dev.fynnjs.transcriber.ui.screens.detail
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -62,8 +64,8 @@ class DetailModelPickerTest {
         composeRule.onNodeWithText(WhisperModel.SMALL.displayName).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText(string(R.string.settings_model_not_downloaded), substring = true)
-            .assertIsDisplayed()
+        composeRule.onAllNodesWithText(string(R.string.settings_model_not_downloaded), substring = true)
+            .assertCountEquals(WhisperModel.entries.size - 1)
         composeRule.onNodeWithText(WhisperModel.BASE.displayName).performClick()
         composeRule.waitForIdle()
 

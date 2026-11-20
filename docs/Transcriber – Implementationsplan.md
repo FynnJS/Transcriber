@@ -8,7 +8,7 @@ Android-App zur Transkription von WhatsApp-Sprachnachrichten · Stand: 23.10.202
 | --- | --- |
 | Zweck | Sprachnachrichten per Teilen-Funktion aus WhatsApp transkribieren, inkognito abspielen, Verlauf anzeigen |
 | Transkription | On-device mit whisper.cpp, keine Cloud |
-| Modell | *small* (quantisiert) als Standard, *base* als wählbare Schnell-Option, multilingual mit Auto-Spracherkennung (umstellbar auf Deutsch), Download beim ersten Start |
+| Modell | *small* (quantisiert) als Standard, *base* als wählbare Schnell-Option, *large-v3-turbo* als optionale Genauigkeits-Option, multilingual mit Auto-Spracherkennung (umstellbar auf Deutsch), Download beim ersten Start |
 | Eingang | Teilen-Ziel mit schlanker Overlay-Activity (Bottom-Sheet-Optik), Foreground-Service als Fallback bei längerer Verarbeitung |
 | Umfang | Genau eine Sprachnachricht pro Teilen-Vorgang |
 | Inkognito | WhatsApp erfährt von der Wiedergabe nichts, da die Datei im eigenen Player läuft (kein blauer Mikrofon-Haken beim Absender) |
@@ -78,7 +78,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 2. Volltextsuche über eine FTS-Tabelle (FTS4) auf `transcript` und `label`.
 3. DAO mit Flows: alle Einträge (nach Datum absteigend), Suche, Eintrag nach ID, Status-Updates, Löschen.
 4. `HistoryRepository` als einzige Schnittstelle für die UI und den Service.
-5. DataStore für Einstellungen: Theme, Modell (*small*/*base*), Sprache (Auto/Deutsch), Aufbewahrung Audio, Aufbewahrung Transkript.
+5. DataStore für Einstellungen: Theme, Modell (*small*/*base*/*large-v3-turbo*), Sprache (Auto/Deutsch), Aufbewahrung Audio, Aufbewahrung Transkript.
 6. Room-Schema exportieren (`exportSchema = true`), damit spätere Migrationen testbar sind.
 
 **Fertig, wenn:** Unit-Tests für DAO und Repository laufen, FTS-Suche liefert Treffer.
@@ -118,7 +118,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 ## 9. Schritt 7: Modell-Verwaltung
 
 1. `ModelRepository`: Zustand pro Modell (nicht geladen, lädt, bereit, Fehler), Ablage unter `filesDir/models/`.
-2. Download der quantisierten ggml-Modelle (*small* und *base*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
+2. Download der quantisierten ggml-Modelle (*small*, *base* und optional *large-v3-turbo*) über WorkManager: fortsetzbar, mit Fortschritt. Vor dem Start prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen Fehler; gleichzeitig gestartete Downloads legen den Modellordner kollisionsfrei an. Download-URL und SHA-256-Prüfsumme stammen aus der Modell-Dokumentation des whisper.cpp-Repositorys und werden nach dem Download verifiziert.
 3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Er erscheint nur, wenn kein Modell bereit ist; vorhandene Modelldateien haben Vorrang vor älteren WorkManager-Einträgen abgelöster Downloads, damit ein früherer Fehlschlag ein fertiges Modell nicht verdeckt.
 4. In den Einstellungen: Modell wechseln, weiteres Modell laden, Modell löschen.
 5. Die `INTERNET`-Berechtigung wird nur für diesen Download genutzt (Transkription bleibt komplett offline).

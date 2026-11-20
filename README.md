@@ -9,8 +9,9 @@ GitHub.
 
 - Teilen-Ziel für `audio/*`: schlankes Bottom-Sheet-Overlay, eine Nachricht pro Vorgang
 - Transkription on-device mit whisper.cpp (Modelle *small* als Standard, *base* als
-  Schnell-Option, optional schon im Onboarding mitladbar; Spracherkennung automatisch oder
-  Deutsch)
+  Schnell-Option, *large-v3-turbo* als Genauigkeits-Option für Deutsch; *base* optional
+  schon im Onboarding mitladbar, *large-v3-turbo* in den Einstellungen; Spracherkennung
+  automatisch oder Deutsch)
 - Live-Vorschau: bei längeren Nachrichten wächst das Transkript schon während der
   Transkription mit (überlappende 10-Sekunden-Fenster); der fertige Text entsteht aus
   denselben Fenstern, springt am Ende nicht um und bereinigt doppelte Wörter und falsche
@@ -71,6 +72,11 @@ git submodule update --init --recursive
 ./gradlew connectedDebugAndroidTest   # Instrumented-Tests (Gerät/Emulator)
 ```
 
+`WhisperModelComparisonTest` transkribiert eine deutsche Testansage mit allen installierten
+Modellen, schreibt Laufzeit und Text je Modell nach `adb logcat -s WhisperCompare` und in
+`model-comparison.txt` im externen App-Ordner; fehlt ein Modell, wird der Lauf übersprungen.
+Die Laufzeiten eines Emulators sind kein Geräte-Benchmark.
+
 `local.properties` mit `sdk.dir` wird nicht eingecheckt. Auch
 `gradle/gradle-daemon-jvm.properties` bleibt lokal (ignoriert); der Gradle-Daemon nutzt die
 installierte JDK ≥ 17. Der Release-Keystore liegt ausschließlich lokal bzw. in sicheren
@@ -85,10 +91,17 @@ whisper.cpp-Repository (Hugging Face) geladen und per SHA-256 geprüft:
 | --- | --- | --- | --- |
 | base | `ggml-base-q5_1.bin` | 59.707.625 B | `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898` |
 | small | `ggml-small-q5_1.bin` | 190.085.487 B | `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb` |
+| large-v3-turbo | `ggml-large-v3-turbo-q5_0.bin` | 574.041.195 B | `394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2` |
 
 Vor jedem Download prüft der Worker den freien Speicher und meldet fehlenden Platz als eigenen
 Fehler; gleichzeitig gestartete Downloads (etwa *small* und *base* im Onboarding) legen den
 Modellordner kollisionsfrei an.
+
+*large-v3-turbo* ist eine optionale Zusatzvariante im selben Download- und Auswahl-Fluss:
+multilinguales large-v3 mit destilliertem 4-Schichten-Decoder, deutlich genaueres Deutsch als
+*small*, aber rund dreimal so groß und spürbar rechenintensiver. Der Standard bleibt *small*,
+damit niemand ungefragt 548 MB lädt; *large-v3-turbo* wird nur nach ausdrücklichem Tippen in
+den Einstellungen geladen.
 
 Ob ein Modell bereit ist, entscheidet die Datei auf dem Gerät – nicht der letzte
 WorkManager-Eintrag. WorkManager behält die Einträge abgelöster Downloads, deshalb werden alte

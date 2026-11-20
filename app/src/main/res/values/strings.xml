@@ -98,6 +98,7 @@
     <string name="settings_model">Modell</string>
     <string name="settings_model_small_desc">Genauer, braucht mehr Speicher und Zeit</string>
     <string name="settings_model_base_desc">Schneller, weniger genau</string>
+    <string name="settings_model_turbo_desc">Am genauesten, braucht am meisten Speicher und Zeit</string>
     <string name="settings_model_download">Laden</string>
     <string name="settings_model_delete">Modell löschen</string>
     <string name="settings_model_active">Aktives Modell</string>
