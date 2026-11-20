@@ -122,6 +122,7 @@ Alternativ das Repo im Browser anlegen (privat, ohne README) und danach `git rem
 3. Einführungsbildschirm beim ersten Start: Erklärung, Größe, Hinweis auf WLAN, Download starten. Er erscheint nur, wenn kein Modell bereit ist; vorhandene Modelldateien haben Vorrang vor älteren WorkManager-Einträgen abgelöster Downloads, damit ein früherer Fehlschlag ein fertiges Modell nicht verdeckt.
 4. In den Einstellungen: Modell wechseln, weiteres Modell laden, Modell löschen.
 5. Die `INTERNET`-Berechtigung wird nur für diesen Download genutzt (Transkription bleibt komplett offline).
+6. Encoder-Kontext: whisper.cpp rechnet immer mit seinem Standard (`audio_ctx = 0`, 30 s), auch für kurze Nachrichten. Eine frühere Verkürzung auf die Dateilänge ist zurückgenommen, weil whisper.cpp 1.9.5 bei wechselndem Kontext auf derselben Modell-Instanz lückenhafte Transkripte liefert – nachweislich auch mit *large-v3-turbo* und automatischer Spracherkennung. Alle Modell-/Sprach-Kombinationen laufen damit; Details und Begründung im README.
 
 **Fertig, wenn:** Erster Start lädt das Modell, Prüfsumme stimmt, Modellwechsel funktioniert.
 

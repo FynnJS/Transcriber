@@ -53,8 +53,9 @@ app/src/main/cpp/ CMake + JNI-Brücke zu third_party/whisper.cpp
 Ablauf: `ShareReceiverActivity` kopiert den Stream in den app-privaten Speicher, berechnet
 den SHA-256 (Duplikaterkennung), legt einen `HistoryEntry` an und startet den
 `TranscriptionService`. Der Service dekodiert nach 16 kHz mono Float-PCM und übergibt es in
-überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang). Fortschritt,
-Live-Vorschau und Ergebnis landen in Room, das Overlay beobachtet den Eintrag.
+überlappenden Fenstern an whisper.cpp (kurze Nachrichten in einem Durchgang); jedes Fenster
+rechnet mit whisper.cpp' eigenem 30-s-Encoder-Kontext. Fortschritt, Live-Vorschau und Ergebnis
+landen in Room, das Overlay beobachtet den Eintrag.
 
 Details zu Farben, Typografie und Komponenten: [docs/Design_System.md](docs/Design_System.md).
 
@@ -110,6 +111,16 @@ multilinguales large-v3 mit destilliertem 4-Schichten-Decoder, deutlich genauere
 *small*, aber rund dreimal so groß und spürbar rechenintensiver. Der Standard bleibt *small*,
 damit niemand ungefragt 548 MB lädt; *large-v3-turbo* wird nur nach ausdrücklichem Tippen in
 den Einstellungen geladen.
+
+**Encoder-Kontext bleibt bei whisper.cpp' Standard (`audio_ctx = 0`, volle 30 s).** Eine
+frühere Tempo-Optimierung kürzte den Encoder-Kontext auf die Länge der jeweiligen Datei. Auf
+whisper.cpp 1.9.5 liefert das lückenhafte oder halluzinierte Transkripte („… - The - …“,
+leere sehr kurze Nachrichten), sobald sich der Encoder-Kontext zwischen zwei Aufrufen auf
+derselben Modell-Instanz ändert – und das tun sowohl die Spracherkennung als auch die
+überlappenden Fenster. Die Optimierung ist deshalb zurückgenommen: Jede Kombination aus Modell
+(*small*, *base*, *large-v3-turbo*) und Spracheinstellung (Auto, Deutsch) läuft mit dem vollen
+Kontext. Kurze Nachrichten zahlen damit die Encoder-Rechnung von 30 s Audio; eine sichere
+Verkürzung bräuchte einen eigenen Kontext pro Kontextwert oder einen Fix in whisper.cpp.
 
 Ob ein Modell bereit ist, entscheidet die Datei auf dem Gerät – nicht der letzte
 WorkManager-Eintrag. WorkManager behält die Einträge abgelöster Downloads, deshalb werden alte
